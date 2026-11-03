@@ -75,27 +75,7 @@ src/app/                 pages
 
 L'idée du dépôt est d'accueillir d'autres secteurs sur le même principe : entrepôt, hôpital, service client…
 
-## Installer sur un VPS (OVH ou autre)
+## Hébergement
 
-Sur un VPS Debian ou Ubuntu, en root :
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/m6rdxc9g4t-beep/agent-ops-lab/main/deploy/ovh/install.sh | sudo bash
-```
-
-Avec un nom de domaine en HTTPS : faites d'abord pointer le domaine vers l'IP du VPS (enregistrement **A** dans la zone DNS OVH), puis lancez :
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/m6rdxc9g4t-beep/agent-ops-lab/main/deploy/ovh/install.sh | sudo DOMAIN=ops.mondomaine.fr bash
-```
-
-Le script installe Node.js 22 et Caddy (certificat HTTPS automatique), compile l'application, la lance en service systemd et vérifie GitHub toutes les 2 minutes pour la redéployer à chaque push sur `main`. Il peut être relancé sans risque.
-
-Commandes utiles :
-
-```bash
-systemctl status agent-ops-lab              # état de l'application
-journalctl -u agent-ops-lab -f              # journal de l'application
-journalctl -u agent-ops-lab-update -n 50    # journal des mises à jour
-sudo agent-ops-lab-update                   # forcer une mise à jour
-```
+- **Vercel** : chaque push sur `main` est déployé automatiquement.
+- **VPS de la suite Atelier** : l'app est intégrée à [Atelier_Deploy](https://github.com/m6rdxc9g4t-beep/Atelier_Deploy), section « Sites & tests » du portail, sur `ops.<domaine>`, derrière la connexion du portail. Elle est construite en serveur Next.js autonome (`output: "standalone"`), et `/api/health` sert au voyant du portail.
