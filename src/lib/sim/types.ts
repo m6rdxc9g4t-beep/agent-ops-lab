@@ -27,6 +27,26 @@ export interface ShipEvent {
   tone?: "info" | "good" | "warn" | "bad" | "agent";
 }
 
+export type DriverMessageKind = "reroute" | "reefer" | "dispatch" | "notified";
+
+export interface DriverMessage {
+  id: string;
+  t: number;
+  kind: DriverMessageKind;
+  key: string;
+  vars?: Record<string, string | number>;
+  ackAt?: number;
+}
+
+export interface ShareSettings {
+  temp: boolean;
+  driver: boolean;
+  sentAt: number;
+  to: string;
+}
+
+export type DriverReport = "bouchon" | "panne" | "froid";
+
 export interface Shipment {
   id: string;
   client: string;
@@ -61,6 +81,8 @@ export interface Shipment {
   customerNotified: boolean;
   tempHistory: TempSample[];
   events: ShipEvent[];
+  inbox: DriverMessage[];
+  share?: ShareSettings;
 }
 
 export interface Incident {

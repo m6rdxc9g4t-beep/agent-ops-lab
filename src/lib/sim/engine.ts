@@ -6,6 +6,7 @@ import {
   edgeMinutes,
   fastestPath,
   pathKm,
+  pathRoads,
   TRUCK_SPEED_KMH,
 } from "./network";
 import type {
@@ -23,15 +24,27 @@ import type {
 
 // ───────────────────────── utilitaires ─────────────────────────
 
-export function mulberry32(seed: number) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+/** Générateur pseudo-aléatoire mulberry32 dont l'état est sérialisable. */
+export function mulberryNext(state: { a: number }) {
+  state.a = (state.a + 0x6d2b79f5) >>> 0;
+  let t = state.a;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+export const SNAPSHOT_VERSION = 2;
+
+export interface Snapshot {
+  v: number;
+  seed: number;
+  savedAt: number; // horodatage réel (ms)
+  state: SimState;
+  rng: number;
+  uid: number;
+  nextShipNo: number;
+  cooldown: [string, number][];
+  lastAgentRun: number;
 }
 
 const MAX_DRIVE = 270; // 4 h 30 de conduite avant une pause de 45 min (règlement CE 561/2006)
@@ -152,7 +165,8 @@ type Listener = () => void;
 export class SimEngine {
   state!: SimState;
   settings: Settings;
-  private rand!: () => number;
+  private rng = { a: 0 };
+  private rand = () => mulberryNext(this.rng);
   private listeners = new Set<Listener>();
   private timer: ReturnType<typeof setInterval> | null = null;
   private uid = 0;
@@ -205,7 +219,7 @@ export class SimEngine {
 
   // ── initialisation ──
   reset() {
-    this.rand = mulberry32(this.settings.seed);
+    this.rng = { a: this.settings.seed >>> 0 };
     this.uid = 0;
     this.nextShipNo = 48400;
     this.cooldown.clear();
@@ -229,6 +243,39 @@ export class SimEngine {
     this.scriptOpening();
     this.runAgent(true);
     this.emit();
+  }
+
+  // ── sauvegarde ──
+  serialize(): Snapshot {
+    return {
+      v: SNAPSHOT_VERSION,
+      seed: this.settings.seed,
+      savedAt: Date.now(),
+      state: this.state,
+      rng: this.rng.a,
+      uid: this.uid,
+      nextShipNo: this.nextShipNo,
+      cooldown: [...this.cooldown],
+      lastAgentRun: this.lastAgentRun,
+    };
+  }
+
+  /**
+   * Restaure une sauvegarde. Le temps réel écoulé depuis est rejoué (au plus `maxCatchUp` minutes simulées),
+   * pour que la simulation ait « continué » pendant l'absence de l'opérateur.
+   */
+  hydrate(snap: Snapshot, maxCatchUp = 180): boolean {
+    if (!snap || snap.v !== SNAPSHOT_VERSION || snap.seed !== this.settings.seed || !snap.state?.shipments) return false;
+    this.state = snap.state;
+    this.rng = { a: snap.rng >>> 0 };
+    this.uid = snap.uid;
+    this.nextShipNo = snap.nextShipNo;
+    this.cooldown = new Map(snap.cooldown);
+    this.lastAgentRun = snap.lastAgentRun;
+    const elapsedMin = Math.max(0, (Date.now() - snap.savedAt) / 1000) * (this.settings.speed / 60);
+    if (elapsedMin > 0.05) this.advance(Math.min(maxCatchUp, elapsedMin), true);
+    this.emit();
+    return true;
   }
 
   private makeShipment(seed: Seed): Shipment {
@@ -273,6 +320,7 @@ export class SimEngine {
       customerNotified: false,
       tempHistory: [],
       events: [{ t: departAt - 90, key: "ev.created", tone: "info" }],
+      inbox: [],
     };
   }
 
@@ -763,11 +811,18 @@ export class SimEngine {
       const gain = Math.max(0, Math.round(before - this.eta(s)));
       st.savedMinutes += gain;
       this.event(s, "ev.rerouted", { by, gain }, "good");
+      this.toDriver(s, "reroute", "drv.msg.reroute", {
+        at: HUBS[g.reroute.fromNode].name,
+        roads: pathRoads(g.reroute.proposedPath).join(" · "),
+        next: HUBS[g.reroute.proposedPath[1] ?? g.reroute.fromNode].name,
+        gain,
+      });
       this.log(auto ? "log.autoRerouted" : "log.rerouted", { id: s.id, by, gain }, "good", s.id);
     }
     if (g.type === "notify") {
       s.customerNotified = true;
       this.event(s, "ev.notified", { client: s.client, by }, "good");
+      this.toDriver(s, "notified", "drv.msg.notified", { client: s.client });
       this.log("log.notified", { id: s.id, client: s.client, by }, "good", s.id);
     }
     if (g.type === "reefer") {
@@ -776,16 +831,95 @@ export class SimEngine {
       s.stopUntil = st.now + 20;
       s.speedKmh = 0;
       this.event(s, "ev.reeferCheck", { by }, "good");
+      this.toDriver(s, "reefer", "drv.msg.reefer", { temp: (s.tempC ?? 0).toFixed(1), set: s.setpointC ?? 0 });
       this.log("log.reeferCheck", { id: s.id, by }, "good", s.id);
     }
   }
 
-  /** Lien de suivi partagé (simulé). */
-  shareTracking(id: string, to: string) {
+  /** Lien de suivi partagé avec le client. */
+  shareTracking(id: string, to: string, opts: { temp: boolean; driver: boolean } = { temp: true, driver: false }) {
     const s = this.ship(id);
     if (!s) return;
+    s.share = { ...opts, sentAt: this.state.now, to };
     this.event(s, "ev.shared", { to }, "info");
     this.log("log.shared", { id, to }, "info", id);
+    this.emit();
+  }
+
+  // ── côté chauffeur ──
+  private toDriver(s: Shipment, kind: Shipment["inbox"][number]["kind"], key: string, vars?: Record<string, string | number>) {
+    s.inbox.push({ id: this.id("MSG"), t: this.state.now, kind, key, vars });
+    if (s.inbox.length > 30) s.inbox.shift();
+  }
+
+  /** Message libre du dispatch vers le chauffeur. */
+  sendToDriver(id: string, text: string) {
+    const s = this.ship(id);
+    if (!s || !text.trim()) return;
+    this.toDriver(s, "dispatch", "drv.msg.dispatch", { text: text.trim(), by: this.settings.operatorName });
+    this.log("log.messageSent", { id, driver: s.driver.name }, "info", id);
+    this.emit();
+  }
+
+  /** Le chauffeur accuse réception d'une consigne. */
+  ackMessage(id: string, msgId: string) {
+    const s = this.ship(id);
+    const m = s?.inbox.find((x) => x.id === msgId);
+    if (!s || !m || m.ackAt !== undefined) return;
+    m.ackAt = this.state.now;
+    this.event(s, "ev.driverAck", { driver: s.driver.name }, "good");
+    this.log("log.driverAck", { id, driver: s.driver.name }, "good", id);
+    this.emit();
+  }
+
+  /** Le chauffeur signale un problème depuis la cabine. L'agent en tient compte à son prochain passage. */
+  driverReport(id: string, kind: "bouchon" | "panne" | "froid") {
+    const s = this.ship(id);
+    if (!s || s.phase === "delivered" || s.phase === "planned") return;
+    const st = this.state;
+    if (kind === "bouchon" && s.legIndex < s.path.length - 1) {
+      const e = edgeBetween(s.path[s.legIndex], s.path[s.legIndex + 1]);
+      const existing = st.incidents.find((i) => i.edgeId === e.id);
+      if (existing) existing.end = Math.max(existing.end, st.now + 60);
+      else
+        st.incidents.push({
+          id: this.id("INC"),
+          edgeId: e.id,
+          kind: "bouchon",
+          factor: 0.4,
+          start: st.now,
+          end: st.now + 75,
+          t: Math.min(0.9, Math.max(0.1, s.legKm / e.km + 0.05)),
+        });
+      this.cooldown.delete(`${s.id}|reroute`);
+    }
+    if (kind === "panne" && s.phase === "en_route") {
+      s.phase = "stopped";
+      s.stopReason = "breakdown";
+      s.stopUntil = st.now + 50;
+      s.speedKmh = 0;
+    }
+    if (kind === "froid" && s.setpointC !== undefined) {
+      s.reeferFault = true;
+      s.tempC = Math.max(s.tempC ?? s.setpointC, s.setpointC + 1.6);
+      this.cooldown.delete(`${s.id}|reefer`);
+    }
+    this.event(s, "ev.driverReport", { driver: s.driver.name, report: kind }, "warn");
+    this.log("log.driverReport", { id, driver: s.driver.name, report: kind }, "warn", id);
+    this.lastAgentRun = 0; // l'agent réagit tout de suite
+    this.runAgent(false);
+    this.emit();
+  }
+
+  /** Le chauffeur prend sa pause réglementaire maintenant. */
+  startBreak(id: string) {
+    const s = this.ship(id);
+    if (!s || s.phase !== "en_route") return;
+    s.phase = "stopped";
+    s.stopReason = "break";
+    s.stopUntil = this.state.now + BREAK_MIN;
+    s.speedKmh = 0;
+    this.event(s, "ev.break", undefined, "info");
     this.emit();
   }
 }

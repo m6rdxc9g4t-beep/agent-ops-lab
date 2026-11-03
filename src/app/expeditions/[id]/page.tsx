@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { ChevronLeft, Phone, Share2, Bot, Mail } from "lucide-react";
+import { ChevronLeft, Phone, Share2, Bot, Mail, Smartphone, ExternalLink, Send, CheckCheck, Clock } from "lucide-react";
 import { useSim } from "@/lib/store";
 import { HUBS, pathKm, pathRoads } from "@/lib/sim/network";
 import { MapView } from "@/components/MapView";
@@ -18,6 +18,7 @@ export default function ShipmentPage() {
   const { id } = useParams<{ id: string }>();
   const { state, engine, t, time, dur, notify } = useSim();
   const [share, setShare] = useState(false);
+  const [msg, setMsg] = useState("");
   const s = engine.ship(decodeURIComponent(id));
 
   if (!s)
@@ -32,7 +33,7 @@ export default function ShipmentPage() {
 
   const h = engine.health(s);
   const eta = engine.eta(s);
-  const margin = Math.round(s.windowEnd - eta);
+  const margin = s.windowEnd - eta; // négatif = retard
   const sugs = state.suggestions.filter((g) => g.shipmentId === s.id);
   const pending = sugs.filter((g) => g.status === "pending");
   const lastAgent = [...s.events].reverse().find((e) => e.tone === "agent" || e.tone === "bad" || e.tone === "warn");
@@ -50,7 +51,13 @@ export default function ShipmentPage() {
             {s.rerouted && <Pill tone="accent">{t("ship.rerouted")}</Pill>}
             {s.customerNotified && <Pill tone="ok"><Mail className="size-3" /> {t("ship.notified")}</Pill>}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/chauffeur/${s.id}`}>
+              <Button><Smartphone className="size-4" /> {t("ship.driverView")}</Button>
+            </Link>
+            <a href={`/t/${s.id.toLowerCase()}`} target="_blank" rel="noreferrer">
+              <Button><ExternalLink className="size-4" /> {t("ship.clientView")}</Button>
+            </a>
             <Button onClick={() => setShare(true)}><Share2 className="size-4" /> {t("ship.share")}</Button>
             <Button variant="dark" onClick={() => notify(t("ship.calling", { name: s.driver.name, phone: s.driver.phone }))}>
               <Phone className="size-4" /> {t("ship.call")}
@@ -77,7 +84,7 @@ export default function ShipmentPage() {
                   <p className="text-[11px] text-muted">{s.phase === "delivered" ? t("status.delivered") : t("ship.etaNow")}</p>
                   <p className="tnum text-xl font-semibold" style={{ color: HEALTH_COLOR[h] }}>{time(eta)}</p>
                   {s.phase !== "delivered" && (
-                    <p className="text-[11px]" style={{ color: HEALTH_COLOR[h] }}>{margin >= 0 ? t("ship.vsWindow", { n: margin }) : t("ship.overWindow", { n: -margin })}</p>
+                    <p className="text-[11px]" style={{ color: HEALTH_COLOR[h] }}>{margin >= 0 ? t("ship.vsWindow", { n: Math.floor(margin) }) : t("ship.overWindow", { n: Math.max(1, Math.ceil(-margin)) })}</p>
                   )}
                 </div>
               </div>
@@ -157,6 +164,44 @@ export default function ShipmentPage() {
                   <SuggestionCard key={g.id} g={g} />
                 ))}
             </div>
+          </div>
+          <div className="card p-4">
+            <SectionTitle title={t("ship.messageDriver")} />
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!msg.trim()) return;
+                engine.sendToDriver(s.id, msg);
+                notify(t("ship.sentToDriver", { name: s.driver.name }));
+                setMsg("");
+              }}
+              className="flex gap-2"
+            >
+              <input
+                value={msg}
+                onChange={(e) => setMsg(e.target.value.slice(0, 280))}
+                placeholder={t("ship.messagePlaceholder", { name: s.driver.name.split(" ")[0] })}
+                className="h-9 min-w-0 flex-1 rounded-full border border-line px-3 text-sm outline-none focus:border-accent"
+              />
+              <Button type="submit" variant="dark" disabled={!msg.trim()} aria-label={t("ship.send")}>
+                <Send className="size-4" />
+              </Button>
+            </form>
+            <ul className="mt-3 space-y-2">
+              {[...s.inbox].reverse().slice(0, 5).map((m) => (
+                <li key={m.id} className="rounded-xl bg-[#f6f6f9] p-2.5">
+                  <p className="text-[13px] leading-snug">{t(m.key, m.vars)}</p>
+                  <p className="mt-1 flex items-center gap-1 text-[10px] text-muted">
+                    {time(m.t)}
+                    {m.ackAt !== undefined ? (
+                      <> · <CheckCheck className="size-3 text-ok" /> {t("ship.ackDone", { t: time(m.ackAt) })}</>
+                    ) : m.kind === "reroute" || m.kind === "reefer" ? (
+                      <> · <Clock className="size-3 text-warn" /> {t("ship.ackPending")}</>
+                    ) : null}
+                  </p>
+                </li>
+              ))}
+            </ul>
           </div>
           <div className="card p-4">
             <SectionTitle title={t("ship.history")} />

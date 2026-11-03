@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, Link2, Plus } from "lucide-react";
+import { Check, Copy, ExternalLink, Link2, Plus } from "lucide-react";
 import type { Shipment } from "@/lib/sim/types";
 import { useSim } from "@/lib/store";
 import { Modal } from "./Modal";
@@ -9,7 +9,8 @@ import { Avatar, Button, Toggle } from "./ui";
 
 export function ShareModal({ s, open, onClose }: { s: Shipment; open: boolean; onClose: () => void }) {
   const { t, engine, notify } = useSim();
-  const link = `track.agent-ops-lab.app/s/${s.id.toLowerCase()}-${s.plate.slice(0, 2).toLowerCase()}${s.pallets}`;
+  const url = `${typeof window !== "undefined" ? window.location.origin : ""}/t/${s.id.toLowerCase()}`;
+  const link = url.replace(/^https?:\/\//, "");
   const [copied, setCopied] = useState(false);
   const [to, setTo] = useState<Record<string, boolean>>({ main: true, ap: false });
   const [vis, setVis] = useState({ map: true, temp: s.setpointC !== undefined, driver: false });
@@ -22,7 +23,7 @@ export function ShareModal({ s, open, onClose }: { s: Shipment; open: boolean; o
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(`https://${link}`);
+      await navigator.clipboard.writeText(url);
     } catch {
       /* presse-papiers indisponible */
     }
@@ -32,7 +33,7 @@ export function ShareModal({ s, open, onClose }: { s: Shipment; open: boolean; o
 
   const send = () => {
     const names = chosen.map((r) => r.name).join(", ");
-    engine.shareTracking(s.id, names);
+    engine.shareTracking(s.id, names, { temp: vis.temp, driver: vis.driver });
     notify(t("share.sent", { to: names }));
     onClose();
   };
@@ -94,7 +95,11 @@ export function ShareModal({ s, open, onClose }: { s: Shipment; open: boolean; o
         <option value="0">{t("share.expNever")}</option>
       </select>
 
-      <div className="mt-5 flex items-center justify-between gap-3">
+      <a href={`/t/${s.id.toLowerCase()}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:underline">
+        <ExternalLink className="size-3.5" /> {t("share.openPage")}
+      </a>
+
+      <div className="mt-4 flex items-center justify-between gap-3">
         <p className="text-[11px] text-faint">{t("share.revoke")}</p>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={onClose}>{t("common.cancel")}</Button>

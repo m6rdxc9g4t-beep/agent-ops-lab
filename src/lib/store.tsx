@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { DEFAULT_SETTINGS, SimEngine } from "./sim/engine";
+import { DEFAULT_SETTINGS, SimEngine, type Snapshot } from "./sim/engine";
 import type { Locale, Settings, Shipment, SimState, Suggestion } from "./sim/types";
 import { fr, type Key } from "./i18n/fr";
 import { en } from "./i18n/en";
@@ -17,6 +17,24 @@ export const LOCALES: { id: Locale; label: string; flag: string }[] = [
 ];
 
 const STORAGE_KEY = "agent-ops-lab:settings";
+const SNAP_KEY = "agent-ops-lab:simulation";
+
+function loadSnapshot(): Snapshot | null {
+  try {
+    const raw = window.localStorage.getItem(SNAP_KEY);
+    return raw ? (JSON.parse(raw) as Snapshot) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveSnapshot(e: SimEngine) {
+  try {
+    window.localStorage.setItem(SNAP_KEY, JSON.stringify(e.serialize()));
+  } catch {
+    /* quota dépassé ou stockage indisponible : la simulation continue en mémoire */
+  }
+}
 
 function loadSettings(): Settings {
   try {
@@ -62,6 +80,10 @@ export function makeT(locale: Locale) {
     if (typeof v.type === "string") v.type = t(`sugType.${v.type}`);
     if (v.by === "agent") v.by = t("common.agent");
     if (typeof v.road === "string") v.theRoad = theRoad(locale, v.road);
+    if (typeof v.report === "string") {
+      const r = t(`drv.report.${v.report}`);
+      v.report = locale === "de" ? r : r.toLowerCase(); // les noms allemands gardent leur majuscule
+    }
     const startsWithVar = s.startsWith("{");
     s = s.replace(/\{(\w+)\}/g, (_, k) => (v[k] !== undefined ? String(v[k]) : `{${k}}`));
     // majuscule si la phrase commence par une variable (« l'agent a… » → « L'agent a… »)
@@ -96,7 +118,11 @@ const noopSubscribe = () => () => {};
 
 let singleton: SimEngine | null = null;
 function getEngine(): SimEngine {
-  if (!singleton) singleton = new SimEngine(loadSettings());
+  if (!singleton) {
+    singleton = new SimEngine(loadSettings());
+    const snap = loadSnapshot();
+    if (snap) singleton.hydrate(snap);
+  }
   return singleton;
 }
 
@@ -127,7 +153,18 @@ function SimInner({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     engine.start();
-    return () => engine.stop();
+    const save = () => saveSnapshot(engine);
+    const every = window.setInterval(save, 3000);
+    const onHide = () => document.visibilityState === "hidden" && save();
+    window.addEventListener("pagehide", save);
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      save();
+      engine.stop();
+      window.clearInterval(every);
+      window.removeEventListener("pagehide", save);
+      document.removeEventListener("visibilitychange", onHide);
+    };
   }, [engine]);
 
   useEffect(() => {

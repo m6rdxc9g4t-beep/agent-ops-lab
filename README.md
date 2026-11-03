@@ -27,6 +27,16 @@ Première simulation : **un logiciel de transport (TMS)** où un agent surveille
 | `/expeditions/[id]` | Fiche expédition, température, historique, partage du lien de suivi |
 | `/journal` | Journal d'audit filtrable |
 | `/parametres` | Langue (FR, EN, ES, DE), vitesse, niveau d'incidents, réglages de l'agent, graine du scénario |
+| `/chauffeur` | Application chauffeur : choix du chauffeur |
+| `/chauffeur/[id]` | Écran cabine : prochaine étape, consignes à confirmer, pause, signalement d'un problème, messages |
+| `/t/[id]` | Page de suivi envoyée au client : ETA, étapes, carte, température et chauffeur selon les options de partage |
+
+### La boucle complète
+
+1. L'agent propose un détour et l'opérateur l'approuve dans le back-office.
+2. Le chauffeur reçoit la consigne dans son application et appuie sur « Bien reçu ». La confirmation remonte dans la fiche expédition.
+3. Le chauffeur peut signaler un bouchon, une panne ou un problème de froid. L'agent réagit aussitôt (nouveau détour, contrôle, message client).
+4. Le client suit la livraison sur sa page, avec seulement ce que l'opérateur a choisi de partager.
 
 ## Lancer en local
 
@@ -57,10 +67,35 @@ src/app/                 pages
 
 ## Limites connues
 
-- L'état de la simulation vit en mémoire. Un rechargement complet de la page la redémarre ; les réglages, eux, sont conservés.
+- La simulation est sauvegardée dans le navigateur (localStorage) toutes les 3 secondes. Au retour, le temps écoulé est rejoué, dans la limite de 3 heures simulées. Elle n'est pas partagée entre appareils : un lien client ouvert sur un autre téléphone montre une autre simulation.
 - Les tracés suivent des lignes droites entre plateformes, pas les routes réelles.
 - Toutes les entreprises, personnes et immatriculations sont fictives.
 
 ## Prochaines simulations
 
 L'idée du dépôt est d'accueillir d'autres secteurs sur le même principe : entrepôt, hôpital, service client…
+
+## Installer sur un VPS (OVH ou autre)
+
+Sur un VPS Debian ou Ubuntu, en root :
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/m6rdxc9g4t-beep/agent-ops-lab/main/deploy/ovh/install.sh | sudo bash
+```
+
+Avec un nom de domaine en HTTPS : faites d'abord pointer le domaine vers l'IP du VPS (enregistrement **A** dans la zone DNS OVH), puis lancez :
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/m6rdxc9g4t-beep/agent-ops-lab/main/deploy/ovh/install.sh | sudo DOMAIN=ops.mondomaine.fr bash
+```
+
+Le script installe Node.js 22 et Caddy (certificat HTTPS automatique), compile l'application, la lance en service systemd et vérifie GitHub toutes les 2 minutes pour la redéployer à chaque push sur `main`. Il peut être relancé sans risque.
+
+Commandes utiles :
+
+```bash
+systemctl status agent-ops-lab              # état de l'application
+journalctl -u agent-ops-lab -f              # journal de l'application
+journalctl -u agent-ops-lab-update -n 50    # journal des mises à jour
+sudo agent-ops-lab-update                   # forcer une mise à jour
+```

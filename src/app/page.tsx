@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Bot, Plus, Snowflake, TriangleAlert } from "lucide-react";
+import { ArrowRight, Bot, Plus, Smartphone, Snowflake, TriangleAlert } from "lucide-react";
 import { useSim, sortByUrgency, rankPending } from "@/lib/store";
 import { HUBS } from "@/lib/sim/network";
 import { MapView } from "@/components/MapView";
@@ -53,6 +53,11 @@ export default function Dashboard() {
           <Link href="/dispatch">
             <Button>
               <Bot className="size-4 text-accent" /> {t("agent.pending", { n: pending.length })}
+            </Button>
+          </Link>
+          <Link href="/chauffeur" className="md:hidden">
+            <Button>
+              <Smartphone className="size-4" /> {t("nav.driverApp")}
             </Button>
           </Link>
           <Button
