@@ -27,6 +27,16 @@ Première simulation : **un logiciel de transport (TMS)** où un agent surveille
 | `/expeditions/[id]` | Fiche expédition, température, historique, partage du lien de suivi |
 | `/journal` | Journal d'audit filtrable |
 | `/parametres` | Langue (FR, EN, ES, DE), vitesse, niveau d'incidents, réglages de l'agent, graine du scénario |
+| `/chauffeur` | Application chauffeur : choix du chauffeur |
+| `/chauffeur/[id]` | Écran cabine : prochaine étape, consignes à confirmer, pause, signalement d'un problème, messages |
+| `/t/[id]` | Page de suivi envoyée au client : ETA, étapes, carte, température et chauffeur selon les options de partage |
+
+### La boucle complète
+
+1. L'agent propose un détour et l'opérateur l'approuve dans le back-office.
+2. Le chauffeur reçoit la consigne dans son application et appuie sur « Bien reçu ». La confirmation remonte dans la fiche expédition.
+3. Le chauffeur peut signaler un bouchon, une panne ou un problème de froid. L'agent réagit aussitôt (nouveau détour, contrôle, message client).
+4. Le client suit la livraison sur sa page, avec seulement ce que l'opérateur a choisi de partager.
 
 ## Lancer en local
 
@@ -57,7 +67,7 @@ src/app/                 pages
 
 ## Limites connues
 
-- L'état de la simulation vit en mémoire. Un rechargement complet de la page la redémarre ; les réglages, eux, sont conservés.
+- La simulation est sauvegardée dans le navigateur (localStorage) toutes les 3 secondes. Au retour, le temps écoulé est rejoué, dans la limite de 3 heures simulées. Elle n'est pas partagée entre appareils : un lien client ouvert sur un autre téléphone montre une autre simulation.
 - Les tracés suivent des lignes droites entre plateformes, pas les routes réelles.
 - Toutes les entreprises, personnes et immatriculations sont fictives.
 

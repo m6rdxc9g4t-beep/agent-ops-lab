@@ -47,9 +47,11 @@ interface Props {
   proposals?: "all" | "selected" | "none";
   className?: string;
   labels?: boolean;
+  /** Vue client : pas d'incidents, pas de légende interne, couleur de marque unique. */
+  minimal?: boolean;
 }
 
-export function MapView({ selectedId = null, onSelect, filter, proposals = "all", className = "", labels = false }: Props) {
+export function MapView({ selectedId = null, onSelect, filter, proposals = "all", className = "", labels = false, minimal = false }: Props) {
   const { state, engine, t } = useSim();
   const box = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
@@ -137,7 +139,7 @@ export function MapView({ selectedId = null, onSelect, filter, proposals = "all"
       if (!selectedId || sel || s.phase !== "planned")
         routes.features.push({
           type: "Feature",
-          properties: { color: HEALTH_HEX[h], w: sel ? 5 : 2.5, o: selectedId && !sel ? 0.25 : 0.85 },
+          properties: { color: minimal ? "#6b46ff" : HEALTH_HEX[h], w: sel ? 5 : 2.5, o: selectedId && !sel ? 0.25 : 0.85 },
           geometry: { type: "LineString", coordinates: coords },
         });
     }
@@ -161,7 +163,7 @@ export function MapView({ selectedId = null, onSelect, filter, proposals = "all"
     (map.getSource("proposed") as GeoJSONSource).setData(prop);
 
     const inc: FC = { type: "FeatureCollection", features: [] };
-    for (const i of state.incidents) {
+    for (const i of minimal ? [] : state.incidents) {
       const e = EDGES.find((x) => x.id === i.edgeId)!;
       inc.features.push({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [[HUBS[e.a].lng, HUBS[e.a].lat], [HUBS[e.b].lng, HUBS[e.b].lat]] } });
     }
@@ -188,11 +190,11 @@ export function MapView({ selectedId = null, onSelect, filter, proposals = "all"
       }
       entry.m.setLngLat([pos.lng, pos.lat]);
       const sel = s.id === selectedId;
-      entry.el.style.setProperty("--c", HEALTH_COLOR[engine.health(s)]);
+      entry.el.style.setProperty("--c", minimal ? "var(--accent)" : HEALTH_COLOR[engine.health(s)]);
       entry.el.classList.toggle("is-selected", sel);
       entry.el.style.zIndex = sel ? "5" : "1";
       entry.el.style.opacity = selectedId && !sel ? "0.55" : "1";
-      const wantLabel = labels || sel;
+      const wantLabel = !minimal && (labels || sel);
       let label = entry.el.querySelector(".truck-label") as HTMLSpanElement | null;
       if (wantLabel) {
         if (!label) {
@@ -213,7 +215,7 @@ export function MapView({ selectedId = null, onSelect, filter, proposals = "all"
 
     // incidents
     const incSeen = new Set<string>();
-    for (const i of state.incidents) {
+    for (const i of minimal ? [] : state.incidents) {
       incSeen.add(i.id);
       if (incMarkers.current.has(i.id)) continue;
       const e = EDGES.find((x) => x.id === i.edgeId)!;
@@ -233,7 +235,7 @@ export function MapView({ selectedId = null, onSelect, filter, proposals = "all"
         incMarkers.current.delete(id);
       }
     }
-  }, [state, engine, selectedId, ready, filter, proposals, labels, t]);
+  }, [state, engine, selectedId, ready, filter, proposals, labels, minimal, t]);
 
   // recadrage sur le camion sélectionné
   useEffect(() => {
@@ -259,7 +261,7 @@ export function MapView({ selectedId = null, onSelect, filter, proposals = "all"
     <div className={`relative overflow-hidden rounded-2xl bg-[#e9edf2] ${className}`}>
       {/* style en ligne : la feuille de MapLibre force position: relative sur le conteneur */}
       <div ref={box} style={{ position: "absolute", inset: 0 }} />
-      <div className="pointer-events-none absolute bottom-2 left-2 flex flex-wrap gap-x-3 gap-y-1 rounded-full bg-white/90 px-3 py-1 text-[10px] text-muted shadow-sm">
+      <div className="pointer-events-none absolute bottom-2 left-2 flex data-[hidden=true]:hidden flex-wrap gap-x-3 gap-y-1 rounded-full bg-white/90 px-3 py-1 text-[10px] text-muted shadow-sm" data-hidden={minimal}>
         <Legend color="var(--ok)" label={t("legend.ontime")} />
         <Legend color="var(--warn)" label={t("legend.risk")} />
         <Legend color="var(--bad)" label={t("legend.late")} />

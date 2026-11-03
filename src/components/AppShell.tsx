@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { Bell, LayoutGrid, MapPinned, Pause, Play, ScrollText, Search, Send, Settings2 } from "lucide-react";
+import { Bell, LayoutGrid, MapPinned, Pause, Play, ScrollText, Search, Send, Settings2, Smartphone } from "lucide-react";
 import { useSim } from "@/lib/store";
 import { HUBS } from "@/lib/sim/network";
 import { Avatar, StatusPill } from "./ui";
@@ -24,9 +24,21 @@ function isActive(path: string, href: string) {
   return path.startsWith(href);
 }
 
+/** Écrans « hors back-office » : application chauffeur et page de suivi client, sans barre latérale. */
+export function isStandalone(path: string) {
+  return path.startsWith("/chauffeur") || path.startsWith("/t/");
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const { t, toast } = useSim();
+  if (isStandalone(path))
+    return (
+      <>
+        {children}
+        {toast && <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm text-white shadow-lg">{toast}</div>}
+      </>
+    );
   return (
     <div className="flex min-h-screen">
       {/* barre latérale (tablette / desktop) */}
@@ -49,6 +61,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           );
         })}
+        <Link
+          href="/chauffeur"
+          title={t("nav.driverApp")}
+          className="mt-3 flex h-10 items-center gap-3 rounded-xl border border-dashed border-line px-2.5 text-sm text-muted transition hover:bg-[#f3f3f7] hover:text-ink"
+        >
+          <Smartphone className="size-[18px] shrink-0" />
+          <span className="hidden xl:block">{t("nav.driverApp")}</span>
+        </Link>
         <div className="mt-auto hidden rounded-xl bg-[#f6f6f9] p-3 text-[11px] leading-snug text-muted xl:block">{t("app.tagline")}</div>
       </aside>
 
