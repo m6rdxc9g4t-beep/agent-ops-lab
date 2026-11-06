@@ -50,9 +50,31 @@ Puis ouvrir http://localhost:3000.
 ## Stack
 
 - Next.js 16 (App Router) + React 19 + TypeScript
-- Tailwind CSS 4
+- Tailwind CSS 4, branché sur la marque commune de la suite Atelier (Inter embarquée)
 - MapLibre GL, avec le fond de carte [OpenFreeMap](https://openfreemap.org). Si les tuiles sont inaccessibles, un fond simplifié hors ligne prend le relais.
 - Le moteur de simulation (`src/lib/sim/`) tourne entièrement dans le navigateur. Il n'y a pas de backend.
+
+## Apparence (suite Atelier)
+
+L'interface suit la charte commune v2 « Linear » de la suite Atelier (règles : `Atelier_Deploy/DESIGN.md`) :
+structure neutre en gris froids, thèmes clair et sombre, police Inter embarquée, signature d'Ops Lab
+(améthyste `#895bd5`, icône Lucide `truck`) réservée à l'accent : bouton principal, sélection, focus,
+itinéraire proposé par l'agent. Seuls les états anormaux sont en couleur (à risque, en retard, incident,
+validation attendue).
+
+- **Marque commune** : `src/styles/atelier-brand/` contient les copies **verbatim** de
+  `Atelier_Projets/design-system/brand/` (`atelier-brand.css`, `atelier-theme.js`, les deux fichiers Inter
+  `inter-latin*-wght-normal.woff2` et `LICENSE-Inter.txt`). Ne pas les modifier ici : la source fait foi,
+  puis on recopie. `atelier-theme.d.ts` déclare seulement l'import du script comme texte.
+- **Thème** : `atelier-theme.js` est lu comme texte (règle Turbopack dans `next.config.ts`) et posé en ligne
+  dans `<head>` (`src/components/theme/ThemeScript.tsx`) avant l'affichage. Le choix Système / Clair / Sombre
+  (pied de la barre latérale et Paramètres) appelle `window.atelierTheme.set()` : cookie `atelier_theme`
+  partagé sur le VPS, sinon `localStorage["atelier:theme"]`.
+- **Jetons de l'app** : `src/app/globals.css` branche les couleurs, la police, l'échelle de texte et les rayons
+  de Tailwind sur les jetons `--atelier-*`. La carte (MapLibre) a sa propre palette claire / sombre aux mêmes
+  valeurs, dans `src/components/MapView.tsx`.
+- **Icônes** : `src/app/icon.svg` (carré arrondi en dégradé de la signature, camion blanc) et `src/app/favicon.ico`
+  (16, 32, 48 px) qui en est tiré.
 
 ## Structure
 
@@ -61,7 +83,9 @@ src/lib/sim/network.ts   réseau routier + plus court chemin (Dijkstra)
 src/lib/sim/engine.ts    moteur : camions, incidents, agent, actions
 src/lib/i18n/*.ts        traductions (fr = référence typée)
 src/lib/store.tsx        contexte React, réglages persistés, formatage
-src/components/          carte, modales, cartes de suggestion, planning…
+src/components/          coquille, carte, modales, cartes de suggestion, planning…
+src/components/theme/    script et sélecteur de thème (préférence commune de la suite)
+src/styles/atelier-brand/  marque commune de la suite (copies verbatim)
 src/app/                 pages
 ```
 

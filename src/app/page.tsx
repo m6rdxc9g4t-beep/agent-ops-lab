@@ -10,7 +10,7 @@ import { SuggestionCard } from "@/components/SuggestionCard";
 import { DriverTimeline } from "@/components/DriverTimeline";
 import { RouteProgress } from "@/components/RouteProgress";
 import { LogList } from "@/components/LogList";
-import { Avatar, Button, Pill, SectionTitle, StatusPill } from "@/components/ui";
+import { Avatar, Button, HEALTH_COLOR, Pill, SectionTitle, StatusPill } from "@/components/ui";
 
 export default function Dashboard() {
   const { state, engine, settings, t, time, dur, notify } = useSim();
@@ -40,24 +40,25 @@ export default function Dashboard() {
     { label: t("kpi.pending"), value: pending.length, tone: "accent" as const, sub: t("kpi.needsYou") },
     { label: t("kpi.saved"), value: dur(state.savedMinutes), sub: `${t("kpi.delivered")} · ${delivered.length}` },
   ];
-  const toneCls = { ok: "text-ok", warn: "text-warn", bad: "text-bad", accent: "text-accent" };
+  // Règle du témoin muet : un compteur ne prend sa couleur que s'il signale quelque chose (non nul, non nominal).
+  const toneCls = { ok: "", warn: "text-warn", bad: "text-bad", accent: "text-accent-text" };
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3 pt-1">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-[28px]">{t(greet, { name: settings.operatorName })}</h1>
-          <p className="mt-1 text-sm text-muted">{t("dash.subtitle")}</p>
+          <h2 className="text-2xl font-semibold tracking-[-0.012em]">{t(greet, { name: settings.operatorName })}</h2>
+          <p className="mt-0.5 text-sm text-muted">{t("dash.subtitle")}</p>
         </div>
         <div className="flex flex-wrap gap-2 whitespace-nowrap">
-          <Link href="/dispatch">
+          <Link href="/dispatch" tabIndex={-1}>
             <Button>
-              <Bot className="size-4 text-accent" /> {t("agent.pending", { n: pending.length })}
+              <Bot className="size-4 text-accent-text" aria-hidden /> {t("agent.pending", { n: pending.length })}
             </Button>
           </Link>
-          <Link href="/chauffeur" className="md:hidden">
+          <Link href="/chauffeur" className="md:hidden" tabIndex={-1}>
             <Button>
-              <Smartphone className="size-4" /> {t("nav.driverApp")}
+              <Smartphone className="size-4" aria-hidden /> {t("nav.driverApp")}
             </Button>
           </Link>
           <Button
@@ -67,20 +68,21 @@ export default function Dashboard() {
               notify(t("log.newShipment", { id: s.id, from: HUBS[s.origin].name, to: HUBS[s.destination].name }));
             }}
           >
-            <Plus className="size-4" /> {t("dash.newShipment")}
+            <Plus className="size-4" aria-hidden /> {t("dash.newShipment")}
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6">
+      {/* indicateurs : une bande dense, cellules séparées par un filet */}
+      <dl className="card grid grid-cols-2 gap-px overflow-hidden bg-line sm:grid-cols-3 xl:grid-cols-6">
         {kpis.map((k) => (
-          <div key={k.label} className="card p-3.5">
-            <p className="text-xs text-muted">{k.label}</p>
-            <p className={`tnum mt-1 text-2xl font-semibold ${k.tone ? toneCls[k.tone] : ""}`}>{k.value}</p>
-            {k.sub && <p className="mt-0.5 truncate text-[11px] text-faint">{k.sub}</p>}
+          <div key={k.label} className="bg-card px-3.5 py-3">
+            <dt className="truncate text-xs font-medium text-muted">{k.label}</dt>
+            <dd className={`tnum mt-1 text-xl font-semibold ${k.tone && k.value !== 0 ? toneCls[k.tone] : ""}`}>{k.value}</dd>
+            {k.sub && <dd className="mt-0.5 truncate text-xs text-faint">{k.sub}</dd>}
           </div>
         ))}
-      </div>
+      </dl>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
         {/* expédition prioritaire */}
@@ -89,28 +91,34 @@ export default function Dashboard() {
             <div className="grid h-full md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div className="flex flex-col p-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Pill tone="accent"><Bot className="size-3" /> {t("dash.featured")}</Pill>
+                  <Pill>
+                    <Bot className="size-3 text-accent-text" aria-hidden /> {t("dash.featured")}
+                  </Pill>
                   <StatusPill health={engine.health(featured)} />
-                  {featured.setpointC !== undefined && <Pill><Snowflake className="size-3" /> {t("common.celsius", { n: featured.tempC?.toFixed(1) ?? "" })}</Pill>}
+                  {featured.setpointC !== undefined && (
+                    <Pill>
+                      <Snowflake className="size-3" aria-hidden /> {t("common.celsius", { n: featured.tempC?.toFixed(1) ?? "" })}
+                    </Pill>
+                  )}
                 </div>
-                <Link href={`/expeditions/${featured.id}`} className="mt-3 block">
-                  <p className="text-xs text-muted">{featured.id} · {featured.client}</p>
-                  <p className="text-xl font-semibold">{HUBS[featured.origin].name} → {HUBS[featured.destination].name}</p>
+                <Link href={`/expeditions/${featured.id}`} className="group mt-3 block">
+                  <p className="tnum text-xs text-muted">{featured.id} · {featured.client}</p>
+                  <p className="text-lg font-semibold group-hover:underline">{HUBS[featured.origin].name} → {HUBS[featured.destination].name}</p>
                 </Link>
-                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  <div className="rounded-xl bg-[#f6f6f9] p-2">
-                    <p className="text-[10px] text-muted">{t("field.window")}</p>
-                    <p className="tnum text-sm font-semibold">{time(featured.windowStart)}–{time(featured.windowEnd)}</p>
+                <dl className="mt-3 grid grid-cols-3 divide-x divide-line rounded-xl border border-line">
+                  <div className="px-2.5 py-2">
+                    <dt className="text-xs text-muted">{t("field.window")}</dt>
+                    <dd className="tnum text-sm font-semibold">{time(featured.windowStart)}–{time(featured.windowEnd)}</dd>
                   </div>
-                  <div className="rounded-xl bg-[#f6f6f9] p-2">
-                    <p className="text-[10px] text-muted">{t("field.eta")}</p>
-                    <p className="tnum text-sm font-semibold" style={{ color: engine.health(featured) === "late" ? "var(--bad)" : undefined }}>{time(engine.eta(featured))}</p>
+                  <div className="px-2.5 py-2">
+                    <dt className="text-xs text-muted">{t("field.eta")}</dt>
+                    <dd className="tnum text-sm font-semibold" style={{ color: HEALTH_COLOR[engine.health(featured)] }}>{time(engine.eta(featured))}</dd>
                   </div>
-                  <div className="rounded-xl bg-[#f6f6f9] p-2">
-                    <p className="text-[10px] text-muted">{t("field.speed")}</p>
-                    <p className="tnum text-sm font-semibold">{t("common.kmh", { n: featured.speedKmh })}</p>
+                  <div className="px-2.5 py-2">
+                    <dt className="text-xs text-muted">{t("field.speed")}</dt>
+                    <dd className="tnum text-sm font-semibold">{t("common.kmh", { n: featured.speedKmh })}</dd>
                   </div>
-                </div>
+                </dl>
                 <RouteProgress s={featured} compact />
                 <div className="mt-1 flex items-center gap-2.5">
                   <Avatar name={featured.driver.name} />
@@ -118,16 +126,18 @@ export default function Dashboard() {
                     <p className="font-medium">{featured.driver.name}</p>
                     <p className="truncate text-muted">{featured.truckModel} · {featured.plate}</p>
                   </div>
-                  <Link href={`/expeditions/${featured.id}`}>
-                    <Button size="sm">{t("common.open")} <ArrowRight className="size-3.5" /></Button>
+                  <Link href={`/expeditions/${featured.id}`} tabIndex={-1}>
+                    <Button size="sm">
+                      {t("common.open")} <ArrowRight className="size-3.5" aria-hidden />
+                    </Button>
                   </Link>
                 </div>
                 <div className="mt-4 hidden border-t border-line pt-3 md:block">
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-faint">{t("ship.history")}</p>
+                  <p className="group-label mb-1.5">{t("ship.history")}</p>
                   <LogList items={[...featured.events].reverse().slice(0, 4)} />
                 </div>
               </div>
-              <MapView selectedId={featured.id} proposals="selected" onSelect={(id) => router.push(`/expeditions/${id}`)} className="h-[280px] md:h-auto md:min-h-[340px] md:rounded-none" />
+              <MapView selectedId={featured.id} proposals="selected" onSelect={(id) => router.push(`/expeditions/${id}`)} flush className="h-[280px] border-t border-line md:h-auto md:min-h-[340px] md:border-l md:border-t-0" />
             </div>
           </div>
         )}
@@ -135,28 +145,40 @@ export default function Dashboard() {
         {/* brief de l'agent */}
         <div className="card flex flex-col p-4">
           <div className="flex items-center gap-2.5">
-            <span className="grid size-9 place-items-center rounded-xl bg-accent text-white"><Bot className="size-5" /></span>
+            <span className="grid size-7 place-items-center rounded-lg bg-accent-soft text-accent-text" aria-hidden>
+              <Bot className="size-4" />
+            </span>
             <div>
-              <p className="text-sm font-semibold">{t("brief.title")}</p>
-              <p className="text-[11px] text-muted">{t("brief.meta", { n: 4, t: time(state.now) })}</p>
+              <h2 className="text-sm font-semibold">{t("brief.title")}</h2>
+              <p className="tnum text-xs text-muted">{t("brief.meta", { n: 4, t: time(state.now) })}</p>
             </div>
           </div>
-          <p className="mt-3 text-[15px] font-medium leading-snug">
+          <p className="mt-3 text-base font-medium leading-snug">
             {risk + late === 0 ? t("brief.allGood", { n: active.length }) : risk + late === 1 ? t("brief.oneRisk") : t("brief.someRisk", { n: risk + late })}
           </p>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {state.incidents.length > 0 && <Pill tone="bad"><TriangleAlert className="size-3" /> {t("brief.incidents", { n: state.incidents.length })}</Pill>}
-            {reeferAlerts > 0 && <Pill tone="warn"><Snowflake className="size-3" /> {t("brief.reefer", { n: reeferAlerts })}</Pill>}
+            {state.incidents.length > 0 && (
+              <Pill tone="bad">
+                <TriangleAlert className="size-3" aria-hidden /> {t("brief.incidents", { n: state.incidents.length })}
+              </Pill>
+            )}
+            {reeferAlerts > 0 && (
+              <Pill tone="warn">
+                <Snowflake className="size-3" aria-hidden /> {t("brief.reefer", { n: reeferAlerts })}
+              </Pill>
+            )}
           </div>
-          <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wide text-faint">{t("brief.needsApproval")}</p>
+          <p className="group-label mb-1.5 mt-4">{t("brief.needsApproval")}</p>
           <div className="scroll-thin -mr-1 max-h-[360px] space-y-2 overflow-y-auto pr-1">
-            {pending.slice(0, 4).map((g, i) => (
-              <SuggestionCard key={g.id} g={g} index={i} />
+            {pending.slice(0, 4).map((g) => (
+              <SuggestionCard key={g.id} g={g} />
             ))}
             {pending.length === 0 && <p className="text-sm text-muted">{t("agent.empty", { n: active.length })}</p>}
           </div>
-          <Link href="/dispatch" className="mt-3">
-            <Button className="w-full">{t("brief.reviewAll")} <ArrowRight className="size-4" /></Button>
+          <Link href="/dispatch" className="mt-3" tabIndex={-1}>
+            <Button className="w-full">
+              {t("brief.reviewAll")} <ArrowRight className="size-4" aria-hidden />
+            </Button>
           </Link>
         </div>
       </div>
@@ -164,7 +186,7 @@ export default function Dashboard() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
         <DriverTimeline />
         <div className="card p-4">
-          <SectionTitle title={t("dash.activity")} right={<Link href="/journal" className="text-xs font-medium text-accent">{t("common.viewAll")}</Link>} />
+          <SectionTitle title={t("dash.activity")} right={<Link href="/journal" className="text-xs font-medium text-accent-text hover:underline">{t("common.viewAll")}</Link>} />
           <LogList items={state.log.slice(0, 8)} empty={t("dash.noActivity")} />
         </div>
       </div>

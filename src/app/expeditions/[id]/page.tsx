@@ -23,8 +23,8 @@ export default function ShipmentPage() {
 
   if (!s)
     return (
-      <div className="mx-auto max-w-xl pt-10 text-center">
-        <p className="text-muted">{t("ship.notFound")}</p>
+      <div className="mx-auto max-w-xl pt-16 text-center">
+        <p className="text-sm text-muted">{t("ship.notFound")}</p>
         <Link href="/dispatch" className="mt-4 inline-block">
           <Button>{t("nav.dispatch")}</Button>
         </Link>
@@ -40,27 +40,37 @@ export default function ShipmentPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-4">
-      <div className="pt-1">
+      <div>
         <Link href="/dispatch" className="inline-flex items-center gap-1 text-xs text-muted hover:text-ink">
-          <ChevronLeft className="size-3.5" /> {t("ship.back")} / {s.client}
+          <ChevronLeft className="size-3.5" aria-hidden /> {t("ship.back")} / {s.client}
         </Link>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight">{s.id}</h1>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h2 className="tnum text-2xl font-semibold tracking-[-0.012em]">{s.id}</h2>
             <StatusPill health={h} />
-            {s.rerouted && <Pill tone="accent">{t("ship.rerouted")}</Pill>}
-            {s.customerNotified && <Pill tone="ok"><Mail className="size-3" /> {t("ship.notified")}</Pill>}
+            {s.rerouted && <Pill>{t("ship.rerouted")}</Pill>}
+            {s.customerNotified && (
+              <Pill>
+                <Mail className="size-3" aria-hidden /> {t("ship.notified")}
+              </Pill>
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href={`/chauffeur/${s.id}`}>
-              <Button><Smartphone className="size-4" /> {t("ship.driverView")}</Button>
+            <Link href={`/chauffeur/${s.id}`} tabIndex={-1}>
+              <Button>
+                <Smartphone className="size-4" aria-hidden /> {t("ship.driverView")}
+              </Button>
             </Link>
-            <a href={`/t/${s.id.toLowerCase()}`} target="_blank" rel="noreferrer">
-              <Button><ExternalLink className="size-4" /> {t("ship.clientView")}</Button>
+            <a href={`/t/${s.id.toLowerCase()}`} target="_blank" rel="noreferrer" tabIndex={-1}>
+              <Button>
+                <ExternalLink className="size-4" aria-hidden /> {t("ship.clientView")}
+              </Button>
             </a>
-            <Button onClick={() => setShare(true)}><Share2 className="size-4" /> {t("ship.share")}</Button>
-            <Button variant="dark" onClick={() => notify(t("ship.calling", { name: s.driver.name, phone: s.driver.phone }))}>
-              <Phone className="size-4" /> {t("ship.call")}
+            <Button onClick={() => setShare(true)}>
+              <Share2 className="size-4" aria-hidden /> {t("ship.share")}
+            </Button>
+            <Button onClick={() => notify(t("ship.calling", { name: s.driver.name, phone: s.driver.phone }))}>
+              <Phone className="size-4" aria-hidden /> {t("ship.call")}
             </Button>
           </div>
         </div>
@@ -72,19 +82,19 @@ export default function ShipmentPage() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-xs text-muted">{t(`cargo.${s.cargo}`)} · {t("ship.pallets", { n: s.pallets })} · {t("ship.weight", { n: s.weightKg.toLocaleString() })}</p>
-                <p className="mt-0.5 text-xl font-semibold">{HUBS[s.origin].name} → {HUBS[s.destination].name}</p>
+                <p className="mt-0.5 text-lg font-semibold">{HUBS[s.origin].name} → {HUBS[s.destination].name}</p>
                 <p className="text-xs text-muted">{pathRoads(s.path).join(" · ")} · {t("common.km", { n: pathKm(s.path) })}</p>
               </div>
               <div className="flex gap-5 text-right">
                 <div>
-                  <p className="text-[11px] text-muted">{t("field.window")}</p>
-                  <p className="tnum text-xl font-semibold">{time(s.windowStart)}–{time(s.windowEnd)}</p>
+                  <p className="text-xs text-muted">{t("field.window")}</p>
+                  <p className="tnum text-lg font-semibold">{time(s.windowStart)}–{time(s.windowEnd)}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] text-muted">{s.phase === "delivered" ? t("status.delivered") : t("ship.etaNow")}</p>
-                  <p className="tnum text-xl font-semibold" style={{ color: HEALTH_COLOR[h] }}>{time(eta)}</p>
+                  <p className="text-xs text-muted">{s.phase === "delivered" ? t("status.delivered") : t("ship.etaNow")}</p>
+                  <p className="tnum text-lg font-semibold" style={{ color: HEALTH_COLOR[h] }}>{time(eta)}</p>
                   {s.phase !== "delivered" && (
-                    <p className="text-[11px]" style={{ color: HEALTH_COLOR[h] }}>{margin >= 0 ? t("ship.vsWindow", { n: Math.floor(margin) }) : t("ship.overWindow", { n: Math.max(1, Math.ceil(-margin)) })}</p>
+                    <p className="tnum text-xs" style={{ color: h === "ontime" ? "var(--muted)" : HEALTH_COLOR[h] }}>{margin >= 0 ? t("ship.vsWindow", { n: Math.floor(margin) }) : t("ship.overWindow", { n: Math.max(1, Math.ceil(-margin)) })}</p>
                   )}
                 </div>
               </div>
@@ -92,19 +102,19 @@ export default function ShipmentPage() {
             <div className="mt-2">
               <RouteProgress s={s} />
             </div>
-            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <dl className="mt-2 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-4">
               {[
                 [t("field.speed"), s.phase === "en_route" ? t("common.kmh", { n: s.speedKmh }) : s.phase === "stopped" ? t(`stop.${s.stopReason ?? "break"}`) : "—"],
                 [t("field.fuel"), t("common.pct", { n: Math.round(s.fuelPct) })],
                 [t("field.driveLeft"), dur(s.drivingLeftMin)],
                 [t("field.truck"), s.plate],
               ].map(([k, v]) => (
-                <div key={k} className="rounded-xl bg-[#f6f6f9] p-2.5">
-                  <p className="text-[10px] text-muted">{k}</p>
-                  <p className="tnum truncate text-sm font-semibold">{v}</p>
+                <div key={k} className="bg-card px-2.5 py-2">
+                  <dt className="text-xs text-muted">{k}</dt>
+                  <dd className="tnum truncate text-sm font-semibold">{v}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </div>
 
           <MapView selectedId={s.id} proposals="selected" className="h-[320px] sm:h-[380px]" />
@@ -141,18 +151,20 @@ export default function ShipmentPage() {
         <div className="space-y-4">
           <div className="card p-4">
             <div className="mb-3 flex items-center gap-2">
-              <span className="grid size-7 place-items-center rounded-lg bg-accent text-white"><Bot className="size-4" /></span>
-              <p className="text-sm font-semibold">{t("ship.agentBox")}</p>
+              <span className="grid size-6 place-items-center rounded-md bg-accent-soft text-accent-text" aria-hidden>
+                <Bot className="size-3.5" />
+              </span>
+              <h2 className="text-sm font-semibold">{t("ship.agentBox")}</h2>
             </div>
             {lastAgent && (h === "late" || h === "risk" || pending.length > 0) ? (
               <>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-faint">{t("ship.whatHappened")}</p>
+                <p className="group-label">{t("ship.whatHappened")}</p>
                 <p className="mb-3 mt-1 text-sm">{t(lastAgent.key, lastAgent.vars)} · {time(lastAgent.t)}</p>
               </>
             ) : (
               <p className="mb-2 text-sm text-muted">{t("ship.noRisk")}</p>
             )}
-            {pending.length > 0 && <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-faint">{t("ship.recommendation")}</p>}
+            {pending.length > 0 && <p className="group-label mb-1.5">{t("ship.recommendation")}</p>}
             <div className="space-y-2">
               {pending.map((g) => (
                 <SuggestionCard key={g.id} g={g} />
@@ -181,22 +193,23 @@ export default function ShipmentPage() {
                 value={msg}
                 onChange={(e) => setMsg(e.target.value.slice(0, 280))}
                 placeholder={t("ship.messagePlaceholder", { name: s.driver.name.split(" ")[0] })}
-                className="h-9 min-w-0 flex-1 rounded-full border border-line px-3 text-sm outline-none focus:border-accent"
+                aria-label={t("ship.messageDriver")}
+                className="field min-w-0 flex-1 sm:h-[30px]"
               />
-              <Button type="submit" variant="dark" disabled={!msg.trim()} aria-label={t("ship.send")}>
-                <Send className="size-4" />
+              <Button type="submit" variant="accent" disabled={!msg.trim()} aria-label={t("ship.send")} className="px-2">
+                <Send className="size-4" aria-hidden />
               </Button>
             </form>
-            <ul className="mt-3 space-y-2">
+            <ul className="mt-2 divide-y divide-line">
               {[...s.inbox].reverse().slice(0, 5).map((m) => (
-                <li key={m.id} className="rounded-xl bg-[#f6f6f9] p-2.5">
-                  <p className="text-[13px] leading-snug">{t(m.key, m.vars)}</p>
-                  <p className="mt-1 flex items-center gap-1 text-[10px] text-muted">
+                <li key={m.id} className="py-2">
+                  <p className="text-sm leading-snug">{t(m.key, m.vars)}</p>
+                  <p className="tnum mt-0.5 flex items-center gap-1 text-xs text-faint">
                     {time(m.t)}
                     {m.ackAt !== undefined ? (
-                      <> · <CheckCheck className="size-3 text-ok" /> {t("ship.ackDone", { t: time(m.ackAt) })}</>
+                      <> · <CheckCheck className="size-3" aria-hidden /> {t("ship.ackDone", { t: time(m.ackAt) })}</>
                     ) : m.kind === "reroute" || m.kind === "reefer" ? (
-                      <> · <Clock className="size-3 text-warn" /> {t("ship.ackPending")}</>
+                      <span className="flex items-center gap-1 text-warn"> · <Clock className="size-3" aria-hidden /> {t("ship.ackPending")}</span>
                     ) : null}
                   </p>
                 </li>

@@ -17,22 +17,25 @@ export default function Journal() {
     return true;
   });
   return (
-    <div className="mx-auto max-w-3xl space-y-4 pt-1">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("journal.title")}</h1>
-        <p className="mt-1 text-sm text-muted">{t("journal.sub")}</p>
+    <div className="mx-auto max-w-3xl space-y-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">{t("journal.title")}</h2>
+          <p className="mt-0.5 text-sm text-muted">{t("journal.sub")}</p>
+        </div>
+        <Segmented<F>
+          value={f}
+          label={t("journal.title")}
+          onChange={setF}
+          options={[
+            { id: "all", label: t("journal.all") },
+            { id: "agent", label: t("journal.agent") },
+            { id: "incidents", label: t("journal.incidents") },
+            { id: "deliveries", label: t("journal.deliveries") },
+          ]}
+        />
       </div>
-      <Segmented<F>
-        value={f}
-        onChange={setF}
-        options={[
-          { id: "all", label: t("journal.all") },
-          { id: "agent", label: t("journal.agent") },
-          { id: "incidents", label: t("journal.incidents") },
-          { id: "deliveries", label: t("journal.deliveries") },
-        ]}
-      />
-      <div className="card p-4">
+      <div className="card px-4 py-3">
         <LogList items={items.slice(0, 150)} />
       </div>
     </div>

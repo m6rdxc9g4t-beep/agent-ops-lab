@@ -18,25 +18,26 @@ export function TempChart({ s, height = 120 }: { s: Shipment; height?: number })
   const line = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join("");
   const out = Math.abs(s.tempC - s.setpointC) > 1.4;
   const color = out ? "var(--bad)" : "var(--accent)";
+  const valueColor = out ? "var(--bad)" : "var(--ink)";
 
   return (
     <div>
       <div className="mb-1 flex items-baseline justify-between">
         <span className="text-xs text-muted">{t("ship.temperature")}</span>
         <span className="text-xs text-muted">
-          <b className="tnum text-base" style={{ color }}>{t("common.celsius", { n: s.tempC.toFixed(1) })}</b> · {t("ship.setpoint", { n: t("common.celsius", { n: s.setpointC }) })}
+          <b className="tnum text-base font-semibold" style={{ color: valueColor }}>{t("common.celsius", { n: s.tempC.toFixed(1) })}</b> · {t("ship.setpoint", { n: t("common.celsius", { n: s.setpointC }) })}
         </span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height }} role="img" aria-label={t("ship.temperature")}>
-        <rect x={pad.l} width={W - pad.l - pad.r} y={y(s.setpointC + 2)} height={y(s.setpointC - 2) - y(s.setpointC + 2)} fill="var(--ok-soft)" />
-        <line x1={pad.l} x2={W - pad.r} y1={y(s.setpointC)} y2={y(s.setpointC)} stroke="var(--ok)" strokeDasharray="3 3" strokeWidth={1} />
+        <rect x={pad.l} width={W - pad.l - pad.r} y={y(s.setpointC + 2)} height={y(s.setpointC - 2) - y(s.setpointC + 2)} fill="var(--hover)" />
+        <line x1={pad.l} x2={W - pad.r} y1={y(s.setpointC)} y2={y(s.setpointC)} stroke="var(--line-strong)" strokeDasharray="3 3" strokeWidth={1} />
         {[lo + 0.5, s.setpointC, hi - 0.5].map((v) => (
           <text key={v} x={pad.l - 6} y={y(v) + 3} textAnchor="end" fontSize={9} fill="var(--faint)">
             {Math.round(v)}°
           </text>
         ))}
-        {pts.length > 1 && <path d={line} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" />}
-        {pts.length > 0 && <circle cx={x(pts.length - 1)} cy={y(pts[pts.length - 1].v)} r={3.5} fill={color} />}
+        {pts.length > 1 && <path d={line} fill="none" stroke={color} strokeWidth={1.75} strokeLinejoin="round" />}
+        {pts.length > 0 && <circle cx={x(pts.length - 1)} cy={y(pts[pts.length - 1].v)} r={3} fill={color} stroke="var(--card)" strokeWidth={1.5} />}
         {pts.length > 1 && (
           <>
             <text x={pad.l} y={H - 4} fontSize={9} fill="var(--faint)">{time(pts[0].t)}</text>

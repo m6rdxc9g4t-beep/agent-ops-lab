@@ -289,6 +289,13 @@ export const de: Dict = {
   "ev.reeferCheck": "Prüfung des Kühlaggregats von {by} angefordert",
   "ev.shared": "Tracking-Link an {to} gesendet",
 
+  "theme.label": "Darstellung",
+  "theme.system": "System",
+  "theme.light": "Hell",
+  "theme.dark": "Dunkel",
+  "about.open": "Über Atelier Ops Lab",
+  "about.suite": "Atelier-Suite",
+
   "nav.driverApp": "Fahrer-App",
   "drv.title": "Fahrer-App",
   "drv.pick": "Wählen Sie einen Fahrer, um seinen Kabinenbildschirm zu öffnen.",
