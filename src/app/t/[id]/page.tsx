@@ -8,6 +8,7 @@ import type { Shipment } from "@/lib/sim/types";
 import { MapView } from "@/components/MapView";
 import { TempChart } from "@/components/TempChart";
 import { Avatar } from "@/components/ui";
+import { BrandTile } from "@/components/AppShell";
 
 export default function CustomerTracking() {
   const { id } = useParams<{ id: string }>();
@@ -20,7 +21,7 @@ export default function CustomerTracking() {
     return (
       <div className="grid min-h-screen place-items-center p-6 text-center">
         <div>
-          <Package className="mx-auto size-8 text-faint" />
+          <Package className="mx-auto size-7 text-faint" aria-hidden />
           <p className="mt-3 text-sm text-muted">{t("trk.notFound")}</p>
         </div>
       </div>
@@ -46,27 +47,27 @@ export default function CustomerTracking() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       {!s.share && (
-        <div className="flex items-center justify-center gap-2 bg-accent px-3 py-2 text-center text-xs font-medium text-white">
-          <Eye className="size-3.5 shrink-0" /> {t("trk.preview")}
+        <div className="flex items-center justify-center gap-2 border-b border-line bg-accent-soft px-3 py-2 text-center text-xs font-medium text-accent-text">
+          <Eye className="size-3.5 shrink-0" aria-hidden /> {t("trk.preview")}
         </div>
       )}
       <div className="mx-auto max-w-2xl space-y-3 px-3 py-5 sm:py-8">
         <header className="flex items-center gap-2.5 px-1">
-          <span className="grid size-8 place-items-center rounded-xl bg-ink text-sm font-bold text-white">A</span>
+          <BrandTile />
           <div>
             <p className="text-sm font-semibold">{t("app.name")}</p>
-            <p className="text-[11px] text-muted">{t("trk.brand")}</p>
+            <p className="text-xs text-muted">{t("trk.brand")}</p>
           </div>
         </header>
 
         <section className="card p-5">
-          <p className="text-xs text-muted">{t("trk.for", { id: s.id, client: s.client })}</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t("trk.title")}</h1>
+          <p className="tnum text-xs text-muted">{t("trk.for", { id: s.id, client: s.client })}</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-[-0.012em]">{t("trk.title")}</h1>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div>
               <p className="text-xs text-muted">{delivered ? t("trk.step.delivered") : t("trk.eta")}</p>
-              <p className="tnum text-4xl font-semibold tracking-tight">{time(delivered ? s.deliveredAt ?? eta : eta)}</p>
+              <p className="tnum text-[32px] font-semibold leading-tight tracking-[-0.02em]">{time(delivered ? s.deliveredAt ?? eta : eta)}</p>
             </div>
             <div>
               <p className="text-xs text-muted">{t("trk.window")}</p>
@@ -75,12 +76,12 @@ export default function CustomerTracking() {
           </div>
 
           {!delivered && (
-            <p className={`mt-3 rounded-xl px-3 py-2 text-sm ${lateBy > 0 ? "bg-warn-soft text-[#8a5a00]" : "bg-ok-soft text-ok"}`}>
+            <p className={`mt-3 rounded-xl px-3 py-2 text-sm font-medium ${lateBy > 0 && s.phase !== "planned" ? "bg-warn-soft text-warn" : "bg-hover text-ink-2"}`}>
               {s.phase === "planned" ? t("trk.planned", { t: time(s.departAt) }) : lateBy > 0 ? t("trk.late", { n: lateBy }) : t("trk.onTime")}
             </p>
           )}
           {s.phase === "stopped" && (
-            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted"><PauseCircle className="size-3.5" /> {t("trk.stopped")}</p>
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted"><PauseCircle className="size-3.5" aria-hidden /> {t("trk.stopped")}</p>
           )}
 
           {/* étapes */}
@@ -90,11 +91,11 @@ export default function CustomerTracking() {
               const on = i <= step;
               return (
                 <li key={st.label} className="relative flex flex-col items-center text-center">
-                  {i > 0 && <span className={`absolute right-1/2 top-4 h-0.5 w-full ${i <= step ? "bg-accent" : "bg-line"}`} />}
-                  <span className={`relative grid size-8 place-items-center rounded-full ${on ? "bg-accent text-white" : "bg-[#ececf2] text-faint"} ${i === step && !delivered ? "ring-4 ring-accent-soft" : ""}`}>
-                    <Icon className="size-4" />
+                  {i > 0 && <span className={`absolute right-1/2 top-3.5 h-px w-full ${i <= step ? "bg-accent" : "bg-line-strong"}`} />}
+                  <span className={`relative grid size-7 place-items-center rounded-full ${on ? "bg-accent text-accent-ink" : "border border-line-strong bg-card text-faint"}`} aria-hidden>
+                    <Icon className="size-3.5" />
                   </span>
-                  <span className={`mt-1.5 text-[11px] leading-tight ${on ? "font-semibold" : "text-muted"}`}>{st.label}</span>
+                  <span className={`mt-1.5 text-xs leading-tight ${i === step ? "font-semibold text-ink" : on ? "text-ink-2" : "text-muted"}`} aria-current={i === step ? "step" : undefined}>{st.label}</span>
                 </li>
               );
             })}
@@ -121,8 +122,8 @@ export default function CustomerTracking() {
           </section>
         )}
 
-        <footer className="space-y-1 px-1 pt-1 text-[11px] text-faint">
-          <p className="flex items-center gap-1.5"><ShieldCheck className="size-3.5" /> {t("trk.privacy")}</p>
+        <footer className="space-y-1 px-1 pt-1 text-xs text-faint">
+          <p className="flex items-center gap-1.5"><ShieldCheck className="size-3.5" aria-hidden /> {t("trk.privacy")}</p>
           <p>{HUBS[s.origin].name} → {HUBS[s.destination].name} · {t("trk.updated", { t: time(state.now) })}</p>
           <p>{t("trk.contact")}</p>
         </footer>

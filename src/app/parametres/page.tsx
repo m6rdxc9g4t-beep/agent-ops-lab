@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { RotateCcw } from "lucide-react";
+import { Pause, RotateCcw } from "lucide-react";
+import { ThemePicker } from "@/components/theme/ThemePicker";
 import { useSim, LOCALES } from "@/lib/store";
 import type { IncidentLevel } from "@/lib/sim/types";
 import { Button, Segmented, Toggle } from "@/components/ui";
 
 function Row({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-2 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+    <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
       <div className="min-w-0">
         <p className="text-sm font-medium">{title}</p>
         {sub && <p className="mt-0.5 text-xs text-muted">{sub}</p>}
@@ -23,43 +24,41 @@ export default function SettingsPage() {
   const [seed, setSeed] = useState(String(settings.seed));
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4 pt-1">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("settings.title")}</h1>
-        <p className="mt-1 text-sm text-muted">{t("settings.sub")}</p>
-      </div>
+    <div className="mx-auto max-w-3xl space-y-4">
+      <p className="text-sm text-muted">{t("settings.sub")}</p>
 
       <section className="card px-4 py-1">
         <Row title={t("settings.language")} sub={t("settings.languageSub")}>
-          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-            {LOCALES.map((l) => (
-              <button
-                key={l.id}
-                onClick={() => setSettings({ locale: l.id })}
-                className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm transition ${settings.locale === l.id ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line hover:bg-[#f6f6f9]"}`}
-              >
-                <span>{l.flag}</span> {l.label}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            value={settings.locale}
+            label={t("settings.language")}
+            onChange={(v) => setSettings({ locale: v })}
+            options={LOCALES.map((l) => ({ id: l.id, label: l.label }))}
+          />
+        </Row>
+        <div className="border-t border-line" />
+        <Row title={t("theme.label")}>
+          <ThemePicker />
         </Row>
         <div className="border-t border-line" />
         <Row title={t("settings.operator")} sub={t("settings.operatorSub")}>
           <input
             value={settings.operatorName}
             onChange={(e) => setSettings({ operatorName: e.target.value.slice(0, 24) })}
-            className="h-9 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-accent sm:w-56"
+            aria-label={t("settings.operator")}
+            className="field w-full sm:w-56"
           />
         </Row>
       </section>
 
       <section className="card px-4 py-1">
-        <p className="pt-3 text-[11px] font-semibold uppercase tracking-wide text-faint">{t("settings.sim")}</p>
+        <h2 className="group-label pt-3">{t("settings.sim")}</h2>
         <Row title={t("settings.speed")} sub={settings.speed === 0 ? t("settings.speedPause") : t("settings.speedSub", { n: settings.speed })}>
           <Segmented<number>
             value={settings.speed}
             onChange={(v) => setSettings({ speed: v })}
-            options={[0, 1, 10, 60, 300].map((v) => ({ id: v, label: v === 0 ? "❚❚" : `×${v}` }))}
+            label={t("settings.speed")}
+            options={[0, 1, 10, 60, 300].map((v) => ({ id: v, label: v === 0 ? <Pause className="size-3.5" aria-label={t("top.pause")} /> : `×${v}` }))}
           />
         </Row>
         <div className="border-t border-line" />
@@ -73,7 +72,7 @@ export default function SettingsPage() {
       </section>
 
       <section className="card px-4 py-1">
-        <p className="pt-3 text-[11px] font-semibold uppercase tracking-wide text-faint">{t("settings.agent")}</p>
+        <h2 className="group-label pt-3">{t("settings.agent")}</h2>
         <Row title={t("settings.autoApprove")} sub={t("settings.autoApproveSub")}>
           <Toggle on={settings.autoApprove} onChange={(v) => setSettings({ autoApprove: v })} label={t("settings.autoApprove")} />
         </Row>
@@ -103,14 +102,15 @@ export default function SettingsPage() {
       </section>
 
       <section className="card px-4 py-1">
-        <p className="pt-3 text-[11px] font-semibold uppercase tracking-wide text-faint">{t("settings.scenario")}</p>
+        <h2 className="group-label pt-3">{t("settings.scenario")}</h2>
         <Row title={t("settings.seed")} sub={t("settings.seedSub")}>
           <div className="flex gap-2">
             <input
               value={seed}
               inputMode="numeric"
               onChange={(e) => setSeed(e.target.value.replace(/\D/g, "").slice(0, 9))}
-              className="tnum h-9 w-32 rounded-xl border border-line px-3 text-sm outline-none focus:border-accent"
+              aria-label={t("settings.seed")}
+              className="field tnum w-32"
             />
             <Button
               disabled={!seed || Number(seed) === settings.seed}
@@ -126,13 +126,12 @@ export default function SettingsPage() {
         <div className="border-t border-line" />
         <Row title={t("settings.reset")} sub={t("settings.resetSub")}>
           <Button
-            variant="dark"
             onClick={() => {
               engine.reset();
               notify(t("settings.reset"));
             }}
           >
-            <RotateCcw className="size-4" /> {t("settings.reset")}
+            <RotateCcw className="size-4" aria-hidden /> {t("settings.reset")}
           </Button>
         </Row>
       </section>

@@ -32,9 +32,9 @@ export function ReviewModal() {
 
   const header = (icon: React.ReactNode, title: string) => (
     <div className="pr-8">
-      <Pill tone="accent" className="mb-3">
-        <Bot className="size-3" /> {t("common.agentName")} · {t("sug.confidence", { n: Math.round(g.confidence * 100) })}
-      </Pill>
+      <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted">
+        <Bot className="size-3.5 text-accent-text" aria-hidden /> {t("common.agentName")} · {t("sug.confidence", { n: Math.round(g.confidence * 100) })}
+      </p>
       <h3 className="flex items-center gap-2 text-lg font-semibold">
         {icon}
         {title}
@@ -44,10 +44,10 @@ export function ReviewModal() {
 
   const footer = (primary: string) => (
     <>
-      <p className="mt-4 flex items-start gap-2 rounded-xl bg-[#f6f6f9] p-3 text-xs text-muted">
-        <ShieldCheck className="mt-px size-3.5 shrink-0" /> {t("modal.audit")}
+      <p className="mt-4 flex items-start gap-2 border-t border-line pt-3 text-xs text-muted">
+        <ShieldCheck className="mt-px size-3.5 shrink-0 text-faint" aria-hidden /> {t("modal.audit")}
       </p>
-      <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+      <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
         {done ? (
           <Pill>{g.status === "expired" ? t("sug.expired") : g.status === "auto" ? t("sug.auto") : g.status === "approved" ? t("sug.approvedBy", { by: g.resolvedBy ?? "" }) : t("sug.rejectedBy", { by: g.resolvedBy ?? "" })}</Pill>
         ) : (
@@ -84,20 +84,20 @@ export function ReviewModal() {
 
         <div className="mt-4 grid grid-cols-2 gap-2">
           <div className="rounded-2xl border border-line p-3">
-            <p className="truncate text-[11px] text-muted">{t("modal.current", { roads: fromRoads })}</p>
+            <p className="truncate text-xs text-muted">{t("modal.current", { roads: fromRoads })}</p>
             <p className="tnum mt-1 text-2xl font-semibold">{time(r.currentEta)}</p>
-            <p className="text-[11px] text-muted">{dur(r.currentEta - engine.state.now)}</p>
+            <p className="tnum text-xs text-muted">{dur(r.currentEta - engine.state.now)}</p>
             <Pill tone={curLate ? "bad" : "ok"} className="mt-2">{curLate ? t("sug.missesWindow") : t("sug.inWindow")}</Pill>
           </div>
-          <div className="rounded-2xl border-2 border-accent bg-accent-soft/40 p-3">
-            <p className="truncate text-[11px] text-accent">{t("modal.proposed", { roads: toRoads })}</p>
+          <div className="rounded-2xl border border-accent bg-accent-faint p-3">
+            <p className="truncate text-xs font-medium text-accent-text">{t("modal.proposed", { roads: toRoads })}</p>
             <p className="tnum mt-1 text-2xl font-semibold">{time(r.proposedEta)}</p>
-            <p className="text-[11px] text-muted">{dur(r.proposedEta - engine.state.now)}</p>
+            <p className="tnum text-xs text-muted">{dur(r.proposedEta - engine.state.now)}</p>
             <Pill tone={propLate ? "bad" : "ok"} className="mt-2">{propLate ? t("sug.missesWindow") : t("sug.inWindow")}</Pill>
           </div>
         </div>
 
-        <dl className="mt-4 divide-y divide-line text-sm">
+        <dl className="mt-3 divide-y divide-line text-sm">
           {[
             [t("modal.impact"), t("modal.arrivesEarlier", { n: r.gainMin })],
             [t("modal.extraDistance"), `${extra >= 0 ? "+" : "−"}${t("common.km", { n: Math.abs(extra) })}`],
@@ -109,7 +109,7 @@ export function ReviewModal() {
             ],
             [t("modal.driver"), t("modal.driverInfo", { name: s.driver.name, left: dur(s.drivingLeftMin) })],
           ].map(([k, v]) => (
-            <div key={k} className="flex justify-between gap-4 py-2">
+            <div key={k} className="flex justify-between gap-4 py-1.5">
               <dt className="text-muted">{k}</dt>
               <dd className="text-right font-medium">{v}</dd>
             </div>
@@ -133,7 +133,7 @@ export function ReviewModal() {
           });
     return (
       <Modal open onClose={close} width={500} label={t("modal.notify.title")}>
-        {header(<Mail className="size-5 text-accent" />, t("modal.notify.title"))}
+        {header(<Mail className="size-4 text-muted" aria-hidden />, t("modal.notify.title"))}
         <p className="mt-2 text-sm text-muted">{d.why}</p>
         <p className="mt-4 text-xs font-medium text-muted">{t("modal.notify.to", { name: s.contact.name, role: s.contact.role })} · {s.contact.email}</p>
         <textarea
@@ -141,7 +141,7 @@ export function ReviewModal() {
           onChange={(e) => setDraft({ id: g.id, text: e.target.value })}
           disabled={done}
           rows={6}
-          className="mt-2 w-full resize-none rounded-2xl border border-line p-3 text-sm leading-relaxed outline-none focus:border-accent"
+          className="field mt-2 w-full resize-none"
         />
         {footer(t("modal.notify.send"))}
       </Modal>
@@ -152,7 +152,7 @@ export function ReviewModal() {
     const etaAfter = engine.eta(s) + 20;
     return (
       <Modal open onClose={close} width={500} label={t("modal.reefer.title")}>
-        {header(<Snowflake className="size-5 text-accent" />, t("modal.reefer.title"))}
+        {header(<Snowflake className="size-4 text-muted" aria-hidden />, t("modal.reefer.title"))}
         <p className="mt-2 text-sm text-muted">{d.why}</p>
         <div className="mt-4 rounded-2xl border border-line p-3">
           <TempChart s={s} height={110} />

@@ -9,7 +9,7 @@ import { Button, Pill } from "./ui";
 
 const ICON = { reroute: Route, notify: Mail, reefer: Snowflake };
 
-export function SuggestionCard({ g, index, onFocus, active }: { g: Suggestion; index?: number; onFocus?: (shipmentId: string) => void; active?: boolean }) {
+export function SuggestionCard({ g, onFocus, active }: { g: Suggestion; index?: number; onFocus?: (shipmentId: string) => void; active?: boolean }) {
   const { engine, t, time, setReview } = useSim();
   const d = describeSuggestion(g, engine, t, time);
   const Icon = ICON[g.type];
@@ -17,32 +17,32 @@ export function SuggestionCard({ g, index, onFocus, active }: { g: Suggestion; i
   return (
     <div
       onClick={() => onFocus?.(g.shipmentId)}
-      className={`rounded-2xl border p-3 transition ${active ? "border-accent bg-accent-soft/30" : "border-line bg-white"} ${onFocus ? "cursor-pointer hover:border-[#d5d0f5]" : ""} ${pending ? "" : "opacity-70"}`}
+      className={`rounded-2xl border p-3 transition-colors ${active ? "border-[color-mix(in_oklab,var(--accent)_45%,transparent)] bg-accent-faint" : "border-line bg-card"} ${onFocus && !active ? "cursor-pointer hover:border-line-strong" : onFocus ? "cursor-pointer" : ""}`}
     >
       <div className="flex items-start gap-2.5">
-        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-accent-soft text-[11px] font-bold text-accent">
-          {index !== undefined ? String(index + 1).padStart(2, "0") : <Icon className="size-3.5" />}
+        <span className={`grid size-6 shrink-0 place-items-center rounded-md ${pending ? "bg-accent-soft text-accent-text" : "bg-hover text-faint"}`} aria-hidden>
+          <Icon className="size-3.5" strokeWidth={1.9} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-semibold leading-snug">{d.title}</p>
-          <p className="mt-1 text-xs leading-relaxed text-muted">{d.why}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <p className={`text-sm font-semibold leading-snug ${pending ? "" : "text-ink-2"}`}>{d.title}</p>
+          <p className="mt-0.5 text-xs leading-normal text-muted">{d.why}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-1">
             {g.reroute && <Pill tone="ok">{t("sug.gain", { n: g.reroute.gainMin })}</Pill>}
             {g.notify && <Pill tone="bad">+{t("common.min", { n: g.notify.delayMin })}</Pill>}
             {g.reefer && <Pill tone="warn">{t("common.celsius", { n: g.reefer.tempC.toFixed(1) })}</Pill>}
             <Pill>{t("sug.confidence", { n: Math.round(g.confidence * 100) })}</Pill>
-            <Link href={`/expeditions/${g.shipmentId}`} onClick={(e) => e.stopPropagation()} className="text-[11px] font-medium text-muted underline-offset-2 hover:underline">
+            <Link href={`/expeditions/${g.shipmentId}`} onClick={(e) => e.stopPropagation()} className="tnum ml-0.5 text-xs font-medium text-muted hover:text-ink hover:underline">
               {g.shipmentId}
             </Link>
           </div>
           {pending ? (
-            <div className="mt-2.5 flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
+            <div className="mt-2.5 flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
               <Button size="sm" variant="dark" onClick={() => setReview(g.id)}>{t("sug.approve")}</Button>
               <Button size="sm" onClick={() => setReview(g.id)}>{t("sug.review")}</Button>
               <Button size="sm" variant="ghost" onClick={() => engine.reject(g.id)}>{t("sug.dismiss")}</Button>
             </div>
           ) : (
-            <p className="mt-2 text-[11px] font-medium text-muted">
+            <p className="tnum mt-1.5 text-xs text-faint">
               {g.status === "auto" && t("sug.auto")}
               {g.status === "approved" && t("sug.approvedBy", { by: g.resolvedBy ?? "" })}
               {g.status === "rejected" && t("sug.rejectedBy", { by: g.resolvedBy ?? "" })}

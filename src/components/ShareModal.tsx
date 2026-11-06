@@ -44,33 +44,33 @@ export function ShareModal({ s, open, onClose }: { s: Shipment; open: boolean; o
       <p className="mt-1 text-sm text-muted">{t("share.desc", { client: s.client, id: s.id })}</p>
 
       <p className="mt-4 text-xs font-medium text-muted">{t("share.link")}</p>
-      <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-line bg-[#fafafc] p-1.5 pl-3">
-        <Link2 className="size-4 shrink-0 text-faint" />
-        <span className="min-w-0 flex-1 truncate font-mono text-xs">{link}</span>
-        <Button size="sm" variant={copied ? "accent" : "outline"} onClick={copy}>
+      <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-line-strong bg-field p-1 pl-2.5">
+        <Link2 className="size-4 shrink-0 text-faint" aria-hidden />
+        <span className="min-w-0 flex-1 truncate font-mono text-xs text-ink-2">{link}</span>
+        <Button size="sm" onClick={copy}>
           {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />} {copied ? t("share.copied") : t("share.copy")}
         </Button>
       </div>
 
       <p className="mt-4 text-xs font-medium text-muted">{t("share.sendTo")}</p>
-      <div className="mt-1.5 divide-y divide-line rounded-xl border border-line">
+      <div className="mt-1.5 divide-y divide-line overflow-hidden rounded-xl border border-line">
         {recipients.map((r) => (
-          <label key={r.id} className="flex cursor-pointer items-center gap-3 p-2.5">
-            <input type="checkbox" checked={!!to[r.id]} onChange={(e) => setTo({ ...to, [r.id]: e.target.checked })} className="size-4 accent-[var(--accent)]" />
+          <label key={r.id} className="flex cursor-pointer items-center gap-2.5 px-2.5 py-2 hover:bg-hover">
+            <input type="checkbox" checked={!!to[r.id]} onChange={(e) => setTo({ ...to, [r.id]: e.target.checked })} className="size-3.5 accent-[var(--accent)]" />
             <Avatar name={r.name} size={28} />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium">{r.name}</span>
-              <span className="block truncate text-[11px] text-muted">{r.role} · {r.email}</span>
+              <span className="block truncate text-xs text-muted">{r.role} · {r.email}</span>
             </span>
           </label>
         ))}
-        <button className="flex w-full items-center gap-2 p-2.5 text-xs font-medium text-accent" onClick={() => notify(t("share.addRecipient"))}>
+        <button type="button" className="flex w-full items-center gap-2 px-2.5 py-2 text-xs font-medium text-accent-text hover:bg-hover" onClick={() => notify(t("share.addRecipient"))}>
           <Plus className="size-3.5" /> {t("share.addRecipient")}
         </button>
       </div>
 
       <p className="mt-4 text-xs font-medium text-muted">{t("share.visible")}</p>
-      <div className="mt-1.5 divide-y divide-line rounded-xl border border-line">
+      <div className="mt-1.5 divide-y divide-line overflow-hidden rounded-xl border border-line">
         {(
           [
             ["map", t("share.mapEta"), t("share.mapEtaSub")],
@@ -78,10 +78,10 @@ export function ShareModal({ s, open, onClose }: { s: Shipment; open: boolean; o
             ["driver", t("share.driver"), t("share.driverSub")],
           ] as [keyof typeof vis, string, string][]
         ).map(([k, a, b]) => (
-          <div key={k} className="flex items-center gap-3 p-2.5">
+          <div key={k} className="flex items-center gap-3 px-2.5 py-2">
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium">{a}</span>
-              <span className="block text-[11px] text-muted">{b}</span>
+              <span className="block text-xs text-muted">{b}</span>
             </span>
             <Toggle on={vis[k]} onChange={(v) => setVis({ ...vis, [k]: v })} label={a} />
           </div>
@@ -89,18 +89,18 @@ export function ShareModal({ s, open, onClose }: { s: Shipment; open: boolean; o
       </div>
 
       <p className="mt-4 text-xs font-medium text-muted">{t("share.expires")}</p>
-      <select value={exp} onChange={(e) => setExp(e.target.value)} className="mt-1.5 h-10 w-full rounded-xl border border-line bg-white px-3 text-sm outline-none">
+      <select value={exp} onChange={(e) => setExp(e.target.value)} className="field mt-1.5 w-full">
         <option value="24">{t("share.exp24")}</option>
         <option value="72">{t("share.exp72")}</option>
         <option value="0">{t("share.expNever")}</option>
       </select>
 
-      <a href={`/t/${s.id.toLowerCase()}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:underline">
+      <a href={`/t/${s.id.toLowerCase()}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-accent-text hover:underline">
         <ExternalLink className="size-3.5" /> {t("share.openPage")}
       </a>
 
       <div className="mt-4 flex items-center justify-between gap-3">
-        <p className="text-[11px] text-faint">{t("share.revoke")}</p>
+        <p className="text-xs text-faint">{t("share.revoke")}</p>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={onClose}>{t("common.cancel")}</Button>
           <Button variant="accent" disabled={!chosen.length} onClick={send}>{t("share.send")}</Button>
