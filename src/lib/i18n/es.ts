@@ -289,6 +289,13 @@ export const es: Dict = {
   "ev.reeferCheck": "Revisión del equipo de frío solicitada por {by}",
   "ev.shared": "Enlace de seguimiento enviado a {to}",
 
+  "theme.label": "Apariencia",
+  "theme.system": "Sistema",
+  "theme.light": "Claro",
+  "theme.dark": "Oscuro",
+  "about.open": "Acerca de Atelier Ops Lab",
+  "about.suite": "Suite Atelier",
+
   "nav.driverApp": "App del conductor",
   "drv.title": "App del conductor",
   "drv.pick": "Elige un conductor para abrir su pantalla de cabina.",

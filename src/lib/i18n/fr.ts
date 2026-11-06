@@ -287,6 +287,13 @@ export const fr = {
   "ev.reeferCheck": "Contrôle du groupe froid demandé par {by}",
   "ev.shared": "Lien de suivi envoyé à {to}",
 
+  "theme.label": "Apparence",
+  "theme.system": "Système",
+  "theme.light": "Clair",
+  "theme.dark": "Sombre",
+  "about.open": "À propos d'Atelier Ops Lab",
+  "about.suite": "Suite Atelier",
+
   "nav.driverApp": "Application chauffeur",
   "drv.title": "Application chauffeur",
   "drv.pick": "Choisissez un chauffeur pour ouvrir son écran en cabine.",

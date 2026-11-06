@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },
+      // Préférence de thème commune de la suite : lue comme texte et posée en ligne dans <head>
+      // (src/components/theme/ThemeScript.tsx).
+      "atelier-theme.js": { type: "text" },
     },
   },
 };

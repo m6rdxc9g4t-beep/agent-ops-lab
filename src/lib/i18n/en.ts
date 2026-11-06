@@ -289,6 +289,13 @@ export const en: Dict = {
   "ev.reeferCheck": "Reefer check requested by {by}",
   "ev.shared": "Tracking link sent to {to}",
 
+  "theme.label": "Appearance",
+  "theme.system": "System",
+  "theme.light": "Light",
+  "theme.dark": "Dark",
+  "about.open": "About Atelier Ops Lab",
+  "about.suite": "Atelier suite",
+
   "nav.driverApp": "Driver app",
   "drv.title": "Driver app",
   "drv.pick": "Pick a driver to open their in-cab screen.",

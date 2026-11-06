@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Copie générée par scripts/copy-maplibre-worker.mjs (ignorée par git)
+    "public/maplibre-gl-worker.mjs",
+    // Copies verbatim de la marque commune (Atelier_Projets/design-system/brand/)
+    "src/styles/atelier-brand/**",
   ]),
 ]);
 
