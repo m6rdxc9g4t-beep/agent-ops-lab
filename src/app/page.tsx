@@ -73,10 +73,10 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* indicateurs : une bande dense, cellules séparées par un filet */}
-      <dl className="card grid grid-cols-2 gap-px overflow-hidden bg-line sm:grid-cols-3 xl:grid-cols-6">
+      {/* indicateurs : une rangée de cartes de chiffres */}
+      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
         {kpis.map((k) => (
-          <div key={k.label} className="bg-card px-3.5 py-3">
+          <div key={k.label} className="kpi px-3.5 py-3">
             <dt className="truncate text-xs font-medium text-muted">{k.label}</dt>
             <dd className={`tnum mt-1 text-xl font-semibold ${k.tone && k.value !== 0 ? toneCls[k.tone] : ""}`}>{k.value}</dd>
             {k.sub && <dd className="mt-0.5 truncate text-xs text-faint">{k.sub}</dd>}
@@ -105,16 +105,16 @@ export default function Dashboard() {
                   <p className="tnum text-xs text-muted">{featured.id} · {featured.client}</p>
                   <p className="text-lg font-semibold group-hover:underline">{HUBS[featured.origin].name} → {HUBS[featured.destination].name}</p>
                 </Link>
-                <dl className="mt-3 grid grid-cols-3 divide-x divide-line rounded-xl border border-line">
-                  <div className="px-2.5 py-2">
+                <dl className="mt-3 grid grid-cols-3 gap-2">
+                  <div className="kpi px-2.5 py-2">
                     <dt className="text-xs text-muted">{t("field.window")}</dt>
                     <dd className="tnum text-sm font-semibold">{time(featured.windowStart)}–{time(featured.windowEnd)}</dd>
                   </div>
-                  <div className="px-2.5 py-2">
+                  <div className="kpi px-2.5 py-2">
                     <dt className="text-xs text-muted">{t("field.eta")}</dt>
                     <dd className="tnum text-sm font-semibold" style={{ color: HEALTH_COLOR[engine.health(featured)] }}>{time(engine.eta(featured))}</dd>
                   </div>
-                  <div className="px-2.5 py-2">
+                  <div className="kpi px-2.5 py-2">
                     <dt className="text-xs text-muted">{t("field.speed")}</dt>
                     <dd className="tnum text-sm font-semibold">{t("common.kmh", { n: featured.speedKmh })}</dd>
                   </div>

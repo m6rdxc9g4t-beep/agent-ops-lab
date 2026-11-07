@@ -115,13 +115,13 @@ export default function DriverScreen() {
 
         {s.phase !== "delivered" && (
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-2xl border border-line bg-card p-3.5">
+            <div className="kpi p-3.5">
               <p className="text-xs text-muted">{t("drv.arrival")}</p>
               <p className="tnum mt-0.5 text-2xl font-semibold" style={{ color: HEALTH_COLOR[h] }}>{time(eta)}</p>
               <p className="text-xs text-muted">{lateBy > 0 ? t("drv.late", { n: dur(lateBy) }) : t("drv.onTime")}</p>
               <p className="tnum mt-1 text-xs text-faint">{t("drv.window", { start: time(s.windowStart), end: time(s.windowEnd) })}</p>
             </div>
-            <div className="rounded-2xl border border-line bg-card p-3.5">
+            <div className="kpi p-3.5">
               <p className="text-xs text-muted">{t("field.driveLeft")}</p>
               <p className={`tnum mt-0.5 text-2xl font-semibold ${s.drivingLeftMin < 45 ? "text-warn" : ""}`}>{dur(s.drivingLeftMin)}</p>
               {s.phase === "en_route" && s.drivingLeftMin < 120 && (
@@ -131,7 +131,7 @@ export default function DriverScreen() {
               )}
             </div>
             {s.setpointC !== undefined && s.tempC !== undefined && (
-              <div className="col-span-2 flex items-center gap-3 rounded-2xl border border-line bg-card p-3.5">
+              <div className="col-span-2 flex items-center gap-3 kpi p-3.5">
                 <Snowflake className="size-5 text-muted" aria-hidden />
                 <div className="flex-1">
                   <p className="text-xs text-muted">{t("field.reefer")}</p>

@@ -13,20 +13,21 @@ const REMOTE_STYLE = { light: "https://tiles.openfreemap.org/styles/positron", d
 type Mode = "light" | "dark";
 
 /**
- * Couleurs de la carte (MapLibre ne lit pas les variables CSS) : mêmes valeurs que les jetons de la charte.
+ * Couleurs de la carte hors ligne (MapLibre ne lit pas les variables CSS) : terre et mer crème en clair, bleu nuit
+ * en sombre, comme les jetons de la charte.
  * Une tournée à l'heure est neutre ; seuls « à risque » (ambre) et « en retard » (rouge) sont colorés,
  * l'itinéraire proposé par l'agent et la sélection prennent la signature d'Ops Lab.
  */
 const PALETTE = {
   light: {
-    sea: "#e8eaee", land: "#f6f7f8", coast: "#d0d2d8", network: "#c3c6ce", hub: "#ffffff", hubStroke: "#868a94",
-    route: "#5f636c", risk: "#a35f00", late: "#c9302b", faint: "#a3a6ae", accent: "#895bd5",
-    accident: "#c9302b", jam: "#a35f00", works: "#6c7079",
+    sea: "#ebe3d4", land: "#fbf8f1", coast: "#d6cab3", network: "#cbbfa8", hub: "#fffdf8", hubStroke: "#8a8070",
+    route: "#5f574b", risk: "#a35f00", late: "#c9302b", faint: "#a89d8b", accent: "#895bd5",
+    accident: "#c9302b", jam: "#a35f00", works: "#6b6255",
   },
   dark: {
-    sea: "#0b0c0e", land: "#17181b", coast: "#2c2e34", network: "#3a3d45", hub: "#17181b", hubStroke: "#969aa3",
-    route: "#80848d", risk: "#f0b44c", late: "#ff6b6b", faint: "#55585f", accent: "#b699e5",
-    accident: "#e5484d", jam: "#c98a1e", works: "#6c7079",
+    sea: "#070d18", land: "#121b2d", coast: "#24314b", network: "#2d3b57", hub: "#121b2d", hubStroke: "#8b97ad",
+    route: "#8b97ad", risk: "#f0b44c", late: "#ff6b6b", faint: "#536180", accent: "#b699e5",
+    accident: "#e5484d", jam: "#c98a1e", works: "#6b7891",
   },
 } as const;
 type Pal = (typeof PALETTE)[Mode];

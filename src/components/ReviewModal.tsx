@@ -83,13 +83,13 @@ export function ReviewModal() {
         <p className="mt-1 text-xs text-faint">{d.why}</p>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <div className="rounded-2xl border border-line p-3">
+          <div className="kpi p-3">
             <p className="truncate text-xs text-muted">{t("modal.current", { roads: fromRoads })}</p>
             <p className="tnum mt-1 text-2xl font-semibold">{time(r.currentEta)}</p>
             <p className="tnum text-xs text-muted">{dur(r.currentEta - engine.state.now)}</p>
             <Pill tone={curLate ? "bad" : "ok"} className="mt-2">{curLate ? t("sug.missesWindow") : t("sug.inWindow")}</Pill>
           </div>
-          <div className="rounded-2xl border border-accent bg-accent-faint p-3">
+          <div className="kpi border-accent bg-accent-faint p-3">
             <p className="truncate text-xs font-medium text-accent-text">{t("modal.proposed", { roads: toRoads })}</p>
             <p className="tnum mt-1 text-2xl font-semibold">{time(r.proposedEta)}</p>
             <p className="tnum text-xs text-muted">{dur(r.proposedEta - engine.state.now)}</p>
