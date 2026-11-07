@@ -15,7 +15,7 @@ export function Modal({ open, onClose, children, width = 460, label }: { open: b
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-[rgb(10_11_13/0.45)] sm:items-center sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-[rgb(11_18_32/0.45)] sm:items-center sm:p-4" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"

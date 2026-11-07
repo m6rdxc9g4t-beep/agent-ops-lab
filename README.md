@@ -57,10 +57,12 @@ Puis ouvrir http://localhost:3000.
 ## Apparence (suite Atelier)
 
 L'interface suit la charte commune v2 « Linear » de la suite Atelier (règles : `Atelier_Deploy/DESIGN.md`) :
-structure neutre en gris froids, thèmes clair et sombre, police Inter embarquée, signature d'Ops Lab
+structure commune crème en clair (`#f8f4ec`) et bleu nuit en sombre (`#0b1220`), police Inter embarquée, signature d'Ops Lab
 (améthyste `#895bd5`, icône Lucide `truck`) réservée à l'accent : bouton principal, sélection, focus,
 itinéraire proposé par l'agent. Seuls les états anormaux sont en couleur (à risque, en retard, incident,
-validation attendue).
+validation attendue). Les chiffres clés (indicateurs du tableau de bord, mesures d'une tournée, heures d'arrivée)
+sont des cartes de chiffres arrondies : classe `.kpi` de `globals.css`, même forme que `.atelier-kpi` du kit
+(trait de 1 px, coins de 12 px, plates), en rangées espacées.
 
 - **Marque commune** : `src/styles/atelier-brand/` contient les copies **verbatim** de
   `Atelier_Projets/design-system/brand/` (`atelier-brand.css`, `atelier-theme.js`, les deux fichiers Inter
@@ -71,8 +73,8 @@ validation attendue).
   (pied de la barre latérale et Paramètres) appelle `window.atelierTheme.set()` : cookie `atelier_theme`
   partagé sur le VPS, sinon `localStorage["atelier:theme"]`.
 - **Jetons de l'app** : `src/app/globals.css` branche les couleurs, la police, l'échelle de texte et les rayons
-  de Tailwind sur les jetons `--atelier-*`. La carte (MapLibre) a sa propre palette claire / sombre aux mêmes
-  valeurs, dans `src/components/MapView.tsx`.
+  de Tailwind sur les jetons `--atelier-*`. La carte hors ligne (MapLibre) a sa propre palette crème / bleu nuit
+  aux mêmes valeurs, dans `src/components/MapView.tsx` ; les tuiles distantes (OpenFreeMap) gardent leur style.
 - **Icônes** : `src/app/icon.svg` (carré arrondi en dégradé de la signature, camion blanc) et `src/app/favicon.ico`
   (16, 32, 48 px) qui en est tiré.
 

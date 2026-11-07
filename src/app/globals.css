@@ -7,7 +7,7 @@
 
 /* ---------------------------------------------------------------------------
    Jetons — charte Atelier v2 « Linear » (Atelier_Deploy/DESIGN.md)
-   Structure neutre commune (gris froids, clair et sombre) branchée sur les jetons --atelier-*
+   Structure commune à la suite (crème en clair, bleu nuit en sombre) branchée sur les jetons --atelier-*
    du kit (src/styles/atelier-brand/atelier-brand.css). La signature d'Ops Lab (améthyste #895bd5)
    ne sert qu'à l'accent : bouton principal, sélection, focus, liens, itinéraire proposé par l'agent.
    Seuls les états anormaux sont en couleur : à risque (ambre), en retard / incident (rouge).
@@ -24,7 +24,7 @@
   --line: var(--atelier-line);
   --line-strong: var(--atelier-border-soft);
   --ink: var(--atelier-text);
-  --ink-2: #393c42;
+  --ink-2: color-mix(in oklab, var(--atelier-text) 78%, var(--atelier-muted));
   --muted: var(--atelier-muted);
   --faint: var(--atelier-faint);
 
@@ -43,14 +43,13 @@
   --bad-soft: color-mix(in oklab, var(--atelier-down) 10%, transparent);
 
   --shadow-pop: var(--atelier-glow-strong);
-  --shadow-marker: 0 1px 2px rgb(16 17 20 / 0.18), 0 0 0 0.5px rgb(16 17 20 / 0.08);
+  --shadow-marker: 0 1px 2px rgb(40 30 15 / 0.18), 0 0 0 0.5px rgb(40 30 15 / 0.08);
 
   color-scheme: light;
 }
 
 :root.dark,
 .dark {
-  --ink-2: #c8cad0;
   --ok-soft: color-mix(in oklab, var(--atelier-up) 15%, transparent);
   --warn-soft: color-mix(in oklab, var(--atelier-warn) 15%, transparent);
   --bad-soft: color-mix(in oklab, var(--atelier-down) 14%, transparent);
@@ -172,6 +171,15 @@ a {
     border-radius: var(--atelier-radius-lg);
   }
 
+  /* Carte de chiffres (KPI) : forme de .atelier-kpi du kit, plate, trait de 1 px, coins de 12 px.
+     Une rangée de chiffres = des cartes espacées (gap-2), jamais une bande à filets. */
+  .kpi {
+    min-width: 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--atelier-radius-xl);
+  }
+
   /* Contrôle segmenté (filtres, vitesse, thème) */
   .seg {
     display: inline-flex;
@@ -200,7 +208,7 @@ a {
   .seg > button[aria-pressed="true"] {
     background: var(--card);
     color: var(--ink);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--line);
+    box-shadow: var(--atelier-glow), 0 0 0 1px var(--line);
   }
 
   /* Champ de saisie */

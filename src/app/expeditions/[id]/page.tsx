@@ -102,14 +102,14 @@ export default function ShipmentPage() {
             <div className="mt-2">
               <RouteProgress s={s} />
             </div>
-            <dl className="mt-2 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-4">
+            <dl className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {[
                 [t("field.speed"), s.phase === "en_route" ? t("common.kmh", { n: s.speedKmh }) : s.phase === "stopped" ? t(`stop.${s.stopReason ?? "break"}`) : "—"],
                 [t("field.fuel"), t("common.pct", { n: Math.round(s.fuelPct) })],
                 [t("field.driveLeft"), dur(s.drivingLeftMin)],
                 [t("field.truck"), s.plate],
               ].map(([k, v]) => (
-                <div key={k} className="bg-card px-2.5 py-2">
+                <div key={k} className="kpi px-2.5 py-2">
                   <dt className="text-xs text-muted">{k}</dt>
                   <dd className="tnum truncate text-sm font-semibold">{v}</dd>
                 </div>

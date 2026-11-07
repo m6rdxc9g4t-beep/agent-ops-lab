@@ -83,7 +83,7 @@ export default function Tracking() {
                 <span className="font-medium">{selected.driver.name}</span>
                 <span className="text-muted">· {selected.client}</span>
               </div>
-              <div className="mt-3 hidden grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid">
+              <div className="mt-3 hidden grid-cols-2 gap-2 sm:grid">
                 <Stat icon={<Gauge className="size-3.5" />} label={t("field.speed")} value={t("common.kmh", { n: selected.speedKmh })} />
                 {selected.tempC !== undefined ? (
                   <Stat
@@ -118,7 +118,7 @@ export default function Tracking() {
 
 function Stat({ icon, label, value, bad }: { icon: React.ReactNode; label: string; value: string; bad?: boolean }) {
   return (
-    <div className="bg-card px-2.5 py-2">
+    <div className="kpi px-2.5 py-2">
       <p className="flex items-center gap-1 text-xs text-muted">
         {icon}
         {label}
